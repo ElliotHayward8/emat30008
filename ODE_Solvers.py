@@ -29,7 +29,6 @@ def solve_to(f, x0, t0, t1, deltat_max, solver): # solve between two t values wi
         if t + deltat_max > t1:
             h = t1 - t
         x, t = solver(f, x, t, h)
-
     return x, t1
 
 
@@ -45,26 +44,23 @@ def solve_ode(f, x0, t_eval, deltat_max, solver):
     return x_list, t_eval
 
 
-N = 10
-x_error_list, deltat_max_list = [], []
-x0, t0, t1 = 0, 0, 1
-for deltat_max in np.logspace(-15, -1, N):
-    x1, t1 = solve_to(f, x0, t0, t1, deltat_max, euler_step)
-    print(deltat_max)
-    x_error_list.append(np.exp(1) - x1)
-    deltat_max_list.append(deltat_max)
+def error_graph(solve_to, N, x0, t0, t1):
+    x_error_list, deltat_max_list, xn_error_list = [], [], []
+    for deltat_max in np.logspace(-7, -1, N):
+        x1, t1 = solve_to(f, x0, t0, t1, deltat_max, euler_step)
+        xn, tn = solve_to(f, x0, t0, t1, deltat_max, rk4_step)
+        x_error_list.append(abs(np.exp(1) - x1))
+        xn_error_list.append(abs(np.exp(1) - xn))
+        deltat_max_list.append(deltat_max)
+    return x_error_list, xn_error_list, deltat_max_list
 
-print(x_error_list)
-print(deltat_max_list)
-plt.loglog(x_error_list, deltat_max_list)
+
+x_error_list, xn_error_list, deltat_max_list = error_graph(solve_to, 7, 1, 0, 1)
+
+plt.loglog(deltat_max_list, x_error_list, label='Euler Method')
+plt.loglog(deltat_max_list, xn_error_list, 'r-', label='RK4 Method')
+plt.ylabel('Error ()')
+plt.xlabel('Value of h')
+plt.title('Graph showing how the error changes as the value of h changes')
 plt.show()
 
-
-# x1, t1 = solve_to(1, 0, 1, 0.25, euler_step)
-# print(x1, t1)
-# x2RK, t2RK = solve_to(1, 0, 1, 1, rk4_step)
-# print(x2RK, t2RK)
-# t_eval = [0, 1, 2, 3, 4, 5]
-# x_list, t_eval = solve_ode(f, 1, t_eval, 0.0001, rk4_step)
-# print(x_list)
-# print(t_eval)
