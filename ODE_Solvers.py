@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
+import time
 
 def f(x, t): # This function defines the differential equation
     return x
@@ -44,9 +44,9 @@ def solve_ode(f, x0, t_eval, deltat_max, solver):
     return x_list, t_eval
 
 
-def error_graph(solve_to, N, x0, t0, t1):
+def error_graph(solve_to, N, x0, t0, t1):  # Create values for an error graph of RK4/Euler method as h changes
     x_error_list, deltat_max_list, xn_error_list = [], [], []
-    for deltat_max in np.logspace(-7, -1, N):
+    for deltat_max in np.logspace(-N, -0.5, 2*N):
         x1, t1 = solve_to(f, x0, t0, t1, deltat_max, euler_step)
         xn, tn = solve_to(f, x0, t0, t1, deltat_max, rk4_step)
         x_error_list.append(abs(np.exp(1) - x1))
@@ -55,12 +55,32 @@ def error_graph(solve_to, N, x0, t0, t1):
     return x_error_list, xn_error_list, deltat_max_list
 
 
-x_error_list, xn_error_list, deltat_max_list = error_graph(solve_to, 7, 1, 0, 1)
 
-plt.loglog(deltat_max_list, x_error_list, label='Euler Method')
-plt.loglog(deltat_max_list, xn_error_list, 'r-', label='RK4 Method')
-plt.ylabel('Error ()')
-plt.xlabel('Value of h')
-plt.title('Graph showing how the error changes as the value of h changes')
-plt.show()
+
+
+# time0 = time.time()
+# n = 0
+# while n < 10000:
+#     x1, t1 = solve_to(f, 1, 0, 1, 0.00068895, euler_step)
+#     n += 1
+# time1 = time.time()
+# n = 0
+# while n < 10000:
+#     xn, tn = solve_to(f, 1, 0, 1, 0.5, rk4_step)
+#     n += 1
+# time2 = time.time()
+# print('Euler time = ' + str(time1 - time0))
+# print('RK4 time = ' + str(time2 - time1))
+'''
+I used the code above to time the 2 methods
+I used the lines of code below to generate an error graph for the 2 methods
+'''
+# x_error_list, xn_error_list, deltat_max_list = error_graph(solve_to, 5, 1, 0, 1)
+# plt.loglog(deltat_max_list, x_error_list, label='Euler Method')
+# plt.loglog(deltat_max_list, xn_error_list, 'r-', label='RK4 Method')
+# plt.ylabel('|$x_{n}- x(t_{n})$|')
+# plt.xlabel('h')
+# plt.title('Order of error for Euler and RK4')
+# plt.legend()
+# plt.show()
 
