@@ -2,23 +2,39 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
-def f(x, t): # This function defines the differential equation
+def func1(x, t): # This function defines the differential equation
+    return x
+
+
+def func2(x, t):  # This function defines a second differential equation
+    x[0] = x[1]
+    x[1] = -x[0]
     return x
 
 
 def euler_step(f, x, t, h): # Perform one euler step
-    x += (h * f(x, t))
+    if type(x) is list:
+        fx = f(x,t)
+        for element in fx:
+            fx.append(element)
+        x = [a + b for a,b in zip(x, fx)]
+        print(x)
+    else:
+        x += (h * f(x, t))
     t += h
     return x, t
 
 
 def rk4_step(f, x, t, h): # Perform one step of the Runge-Kutta method
     half_h = h / 2
-    k1 = f(x, t)
-    k2 = f(x + (half_h * k1), t + half_h)
-    k3 = f(x + (half_h * k2), t + half_h)
-    k4 = f(x + (h * k3), t + h)
-    x += h * 1/6 * (k1 + 2*k2 + 2*k3 + k4)
+    if type(x) is list:
+        x = 1
+    else:
+        k1 = f(x, t)
+        k2 = f(x + (half_h * k1), t + half_h)
+        k3 = f(x + (half_h * k2), t + half_h)
+        k4 = f(x + (h * k3), t + h)
+        x += h * 1/6 * (k1 + 2*k2 + 2*k3 + k4)
     t += h
     return x, t
 
@@ -44,7 +60,7 @@ def solve_ode(f, x0, t_eval, deltat_max, solver):
     return x_list, t_eval
 
 
-def error_graph(solve_to, N, x0, t0, t1):  # Create values for an error graph of RK4/Euler method as h changes
+def func1_error_graph(f, solve_to, N, x0, t0, t1):  # Create values for an error graph of RK4/Euler method as h changes
     x_error_list, deltat_max_list, xn_error_list = [], [], []
     for deltat_max in np.logspace(-N, -0.5, 2*N):
         x1, t1 = solve_to(f, x0, t0, t1, deltat_max, euler_step)
@@ -55,6 +71,10 @@ def error_graph(solve_to, N, x0, t0, t1):  # Create values for an error graph of
     return x_error_list, xn_error_list, deltat_max_list
 
 
+x, t = euler_step(func2, [0.5,-0.5], 0, 1)
+
+# x, t1 = solve_to(func2, [0.5,-0.5], 0, 0.86, 0.0001, euler_step)
+# print(x)
 
 
 
@@ -72,10 +92,10 @@ def error_graph(solve_to, N, x0, t0, t1):  # Create values for an error graph of
 # print('Euler time = ' + str(time1 - time0))
 # print('RK4 time = ' + str(time2 - time1))
 '''
-I used the code above to time the 2 methods
+I used the code above to time the 2 methods over 10,000 runs
 I used the lines of code below to generate an error graph for the 2 methods
 '''
-# x_error_list, xn_error_list, deltat_max_list = error_graph(solve_to, 5, 1, 0, 1)
+# x_error_list, xn_error_list, deltat_max_list = func1_error_graph(func1, solve_to, 5, 1, 0, 1)
 # plt.loglog(deltat_max_list, x_error_list, label='Euler Method')
 # plt.loglog(deltat_max_list, xn_error_list, 'r-', label='RK4 Method')
 # plt.ylabel('|$x_{n}- x(t_{n})$|')
