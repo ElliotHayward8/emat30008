@@ -112,16 +112,15 @@ def solve_ode(f, x0, t_eval, deltat_max, solver, ODEs):
 
 def func1_error_graph(f, N, x0, t0, t1):
     """
-    This function creates an error graph for the two methods
-    :param f:
-    :param N:
-    :param x0:
-    :param t0:
-    :param t1:
-    :return:
+    This function creates an error graph for the two methods for the function dx/dt = x
+    :param f: Function defining an ODE or system of ODEs
+    :param N: The lowest order of h to calculate the error of (if N = 5, h = 10^-5)
+    :param x0: Starting x value(s)
+    :param t0: Starting time value
+    :param t1: Final time value
     """
     x_error_list, deltat_max_list, xn_error_list = [], [], []
-    for deltat_max in np.logspace(-N, -0.5, 2*N):
+    for deltat_max in np.logspace(-N, -1, 2*N):
         x1 = solve_to(f, x0, t0, t1, deltat_max, euler_step)
         xn = solve_to(f, x0, t0, t1, deltat_max, rk4_step)
         x_error_list.append(abs(np.exp(1) - x1))
@@ -210,7 +209,9 @@ def func2_comparison_graph(deltat_max, time_periods, x0, total_time):
 
 
 def main():
-    # time_methods(func1, 1, 0, 1)
+    func1_error_graph(func1, 5, 1, 0, 1)
+
+    time_methods(func1, 1, 0, 1)
 
     func2_comparison_graph(0.1, 1000, [1, 1], 50)
 
