@@ -96,7 +96,7 @@ def solve_ode(f, x0, t_eval, deltat_max, solver, ODEs):
     # define the empty x array depending on size of x0 and t_eval
     if ODEs:
         x_array = np.empty(shape=(len(t_eval), len(x0)))
-    else:
+    else:  # if we have a first oder ODE len() doesn't work
         x_array = np.empty(shape=(len(t_eval), 1))
     x_array[0] = x0
 
