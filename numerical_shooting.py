@@ -48,30 +48,69 @@ def compare_b_values(b1, b2):
     plt.show()
 
 
-def x_period(x, t_eval, dp=4):
+def inspection_xy_period(x, y, t_eval, dp=4):
     """
     This function finds the time period of the x values
     :param x: List of x values
+    :param y: List of y values
     :param t_eval: The t values corresponding to the values of x
     :param dp: The number of decimal places to round all the values of x to
-    :return: returns the most common value in x and the Time period of x
+    :return: returns the starting x and y value of an orbit alongside the time period of the orbit
     """
 
     round_x = [np.round(num, dp) for num in x]  # round all values in list to dp decimal places
-
-    most_common_x = Counter(round_x).most_common(1)[0][0]
+    most_common_x = Counter(round_x).most_common(1)[0][0] # find the most common x value
 
     # find the time values of the most common value
     all_t_val = t_eval[np.where(round_x == most_common_x)]
 
-    # calculate the time period by getting the time period between these values
+    # calculate the time period by getting the time separation between these values
     t_val_list = []
     for i in range(len(all_t_val) - 1):
         t_val_list.append(all_t_val[i + 1] - all_t_val[i])
 
+    # Take correct time period as the smallest value within the list
     t_per = min(t_val_list)
 
-    return most_common_x, t_per
+    start_index = round_x.index(most_common_x)
+    most_common_y = y[start_index]
+
+    return most_common_x, most_common_y, t_per
+
+
+def shooting(f):
+    """
+    Construct the shooting root-finding problem for a given ODE
+    :param f: ODE to use the shooting root-finding method on
+    :return: Returns the function G which can be solved to find the root which will solve the shooting problem
+    """
+    def G(u0T, phase_con, *vars):
+        """
+        Function which should have a root which returns the periodic orbit of an ODE/ system of ODEs
+        :param u0T: Array which contains the starting guess of the coordinates and the time period
+        :param phase_con: Function of the phase condition
+        :param vars: List of additional variables
+        :return:
+        """
+
+        def F(u0, T):
+            """
+            Solution of ODE f at T with initial conditions x0 using the rk4 method
+            :param u0: Initial condtion(s) for the ODE
+            :param T: The time value to solve at
+            :return: Returns the solution of the ODE at time T using the rk4 method
+            """
+            t_eval = np.linspace(0, T, 1000)
+
+            sol = solve_ode(f, u0, t_eval, 0.01, rk4_step, True, *vars)
+            return sol[:, -1]
+
+        T, u0 = u0T[-1], u0T[:-1]
+
+        # construct an array of the initial guess minus the solution alongside the phase condition
+        g = np.append(u0 - F(u0, T), phase_con(u0, *vars))
+        return g
+    return G
 
 
 def main():
@@ -80,8 +119,14 @@ def main():
     sol_pred_prey = solve_ode(pred_prey_eq, [0.5, 0.5], t_eval, deltat_max, rk4_step, 1, vars1)
     # one value > 0.26 and one value < 0.26 are chosen to observe how the behaviour changes either side of 0.26
     # compare_b_values(0.1, 0.5)
-    most_common_x, T = x_period(sol_pred_prey[0], t_eval)
-    print(T)
+    start_x, start_y, T = inspection_xy_period(sol_pred_prey[0], sol_pred_prey[1], t_eval)
+
+    
+
+
+# define the phase condition for the predator prey equations
+def pred_prey_phase_cond(x0, vars):
+    return pred_prey_eq(x0, 0, vars)[0]
 
 
 if __name__ == '__main__':
