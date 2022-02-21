@@ -1,5 +1,3 @@
-import collections
-
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import fsolve
@@ -19,8 +17,8 @@ def pred_prey_eq(X, t, *vars):
 
 def compare_b_values(b1, b2):
     """
-    A function which produces a graph to compare how the predator prey model changes for different values of b with
-    initial conditions: x,y = 0.5 and h = 0.001
+    A function which produces a graph to compare how the predator prey model changes for different values of b using
+    the rk4 method with initial conditions: x,y = 0.5 and h = 0.001
     :param b1: First value of b
     :param b2: Second value of b
     """
@@ -114,6 +112,14 @@ def shooting(f):
 
 
 def find_shooting_orbit(f, u0T, phase_cond, *vars):
+    """
+    Function which finds the starting coordinates and time period of a periodic orbit within an ODE
+    :param f: An ODE to find the time period and orbit coordinates for
+    :param u0T: Array of the initial guess of the orbit location
+    :param phase_cond: Phase condition for the shooting problem
+    :param vars: List of additional variables
+    :return: Returns the starting coordinates and time period of the ODE
+    """
     G = shooting(f)
     shooting_orbit = fsolve(G, u0T, args=(phase_cond, *vars))
     return shooting_orbit
@@ -127,7 +133,7 @@ def pred_prey_phase_cond(x0, vars):
 def main():
     t_eval, deltat_max, vars1 = np.linspace(0, 1000, 1000), 0.01, [1, 0.1, 0.1]
 
-    pred_prey_u0T = np.array([0.5, 0.5, 23])
+    pred_prey_u0T = np.array([0.60, 0.13, 30])
 
     sol_pred_prey = solve_ode(pred_prey_eq, pred_prey_u0T[:-1], t_eval, deltat_max, rk4_step, 1, vars1)
 
@@ -140,7 +146,11 @@ def main():
     print(shooting_orbit)
     print(np.array([start_x, start_y, T]))
 
-
+    plt.plot(shooting_orbit[0], shooting_orbit[1], 'go', label='Shooting Orbit')
+    plt.plot(start_x, start_y, 'ro', label='Manual Checked Orbit')
+    plt.plot(sol_pred_prey[0], sol_pred_prey[1], 'b', label='Solution')
+    plt.xlabel('x'), plt.ylabel('y'), plt.legend()
+    plt.show()
 
 
 if __name__ == '__main__':

@@ -1,0 +1,6 @@
+In order to run this code the modules which are required are:
+
+collections
+scipy
+matplotlib
+numpy
