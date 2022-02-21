@@ -113,20 +113,34 @@ def shooting(f):
     return G
 
 
-def main():
-    t_eval, deltat_max, vars1 = np.linspace(0, 1000, 1000), 0.01, [1, 0.1, 0.1]
-
-    sol_pred_prey = solve_ode(pred_prey_eq, [0.5, 0.5], t_eval, deltat_max, rk4_step, 1, vars1)
-    # one value > 0.26 and one value < 0.26 are chosen to observe how the behaviour changes either side of 0.26
-    # compare_b_values(0.1, 0.5)
-    start_x, start_y, T = inspection_xy_period(sol_pred_prey[0], sol_pred_prey[1], t_eval)
-
-    
+def find_shooting_orbit(f, u0T, phase_cond, *vars):
+    G = shooting(f)
+    shooting_orbit = fsolve(G, u0T, args=(phase_cond, *vars))
+    return shooting_orbit
 
 
 # define the phase condition for the predator prey equations
 def pred_prey_phase_cond(x0, vars):
     return pred_prey_eq(x0, 0, vars)[0]
+
+
+def main():
+    t_eval, deltat_max, vars1 = np.linspace(0, 1000, 1000), 0.01, [1, 0.1, 0.1]
+
+    pred_prey_u0T = np.array([0.5, 0.5, 23])
+
+    sol_pred_prey = solve_ode(pred_prey_eq, pred_prey_u0T[:-1], t_eval, deltat_max, rk4_step, 1, vars1)
+
+    # one value > 0.26 and one value < 0.26 are chosen to observe how the behaviour changes either side of 0.26
+    # compare_b_values(0.1, 0.5)
+    start_x, start_y, T = inspection_xy_period(sol_pred_prey[0], sol_pred_prey[1], t_eval)
+
+    shooting_orbit = find_shooting_orbit(pred_prey_eq, pred_prey_u0T, pred_prey_phase_cond, vars1)
+
+    print(shooting_orbit)
+    print(np.array([start_x, start_y, T]))
+
+
 
 
 if __name__ == '__main__':
