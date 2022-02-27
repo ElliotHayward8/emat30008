@@ -35,7 +35,7 @@ def euler_step(f, x0, t0, h, *vars):
     :param x0: Starting x value(s)
     :param t0: Starting time value
     :param h: Designated step size
-    :param vars: List of additional variables
+    :param vars: Array of additional variables
     :return: returns the value of function after 1 step (at t1) and t1
     """
     x1 = x0 + h * f(x0, t0, *vars)
@@ -50,7 +50,7 @@ def rk4_step(f, x0, t0, h, *vars):
     :param x0: Starting x value(s)
     :param t0: Starting time value
     :param h: Designated step size
-    :param vars: List of additional variables
+    :param vars: Array of additional variables
     :return: returns the value of function after 1 step (at t1) and t1
     """
     half_h = h / 2
@@ -72,7 +72,7 @@ def solve_to(f, x0, t0, t1, deltat_max, solver, *vars):  # solve between two t v
     :param t1: Final time value
     :param deltat_max: Maximum step size (maximum value of h)
     :param solver: Which solver to use (Euler/RK4)
-    :param vars: List of additional variables
+    :param vars: Array of additional variables
     :return: x value at t1
     """
     h = deltat_max
@@ -93,7 +93,7 @@ def solve_ode(f, x0, t_eval, deltat_max, solver, ODEs, *vars):
     :param deltat_max: Maximum step size (maximum value of h)
     :param solver: Which solver to use (Euler/RK4)
     :param ODEs: True/False defining whether it is a system of ODEs or not
-    :param vars: List of additional variables
+    :param vars: Array of additional variables
     :return: Returns an array of x values at each time in t_eval
     """
     # define the empty x array depending on size of x0 and t_eval
@@ -121,7 +121,7 @@ def func1_error_graph(f, N, x0, t0, t1, *vars):
     :param x0: Starting x value(s)
     :param t0: Starting time value
     :param t1: Final time value
-    :param vars: List of additional variables
+    :param vars: Array of additional variables
     """
     x_error_list, deltat_max_list, xn_error_list = [], [], []
     for deltat_max in np.logspace(-N, -1, 2*N):
@@ -148,7 +148,7 @@ def time_methods(f, x0, t0, t1, *vars):
     :param x0: Starting x value(s)
     :param t0: Starting time value
     :param t1: Final time value
-    :param vars: List of additional variables
+    :param vars: Array of additional variables
     """
     time0 = time.time()
     n = 0
@@ -184,7 +184,7 @@ def func2_comparison_graph(deltat_max, time_periods, x0, total_time, *vars):
     :param time_periods: Number of time periods
     :param x0: Initial value(s) of x
     :param total_time: time to run models over
-    :param vars: List of additional variables
+    :param vars: Array of additional variables
     """
     t = np.linspace(0, total_time, time_periods)
     euler_sol = solve_ode(func2, x0, t, deltat_max, euler_step, True, *vars)

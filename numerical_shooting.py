@@ -22,6 +22,7 @@ def compare_b_values(b1, b2):
     :param b1: First value of b
     :param b2: Second value of b
     """
+
     t_eval = np.linspace(0, 100, 100)
     deltat_max = 0.001
 
@@ -87,7 +88,7 @@ def shooting(f):
         Function which should have a root which returns the periodic orbit of an ODE/ system of ODEs
         :param u0T: Array which contains the starting guess of the coordinates and the time period
         :param phase_con: Function of the phase condition
-        :param vars: List of additional variables
+        :param vars: Array of additional variables
         :return:
         """
 
@@ -117,7 +118,7 @@ def find_shooting_orbit(f, u0T, phase_cond, *vars):
     :param f: An ODE to find the time period and orbit coordinates for
     :param u0T: Array of the initial guess of the orbit location
     :param phase_cond: Phase condition for the shooting problem
-    :param vars: List of additional variables
+    :param vars: Array of additional variables
     :return: Returns the starting coordinates and time period of the ODE
     """
     G = shooting(f)
@@ -128,30 +129,6 @@ def find_shooting_orbit(f, u0T, phase_cond, *vars):
 # define the phase condition for the predator prey equations
 def pred_prey_phase_cond(x0, vars):
     return pred_prey_eq(x0, 0, vars)[0]
-
-
-def normal_hopf(u0, t, vars):
-    beta, sigma = vars[0], vars[1]
-    u1, u2 = u0[0], u0[1]
-
-    du1dt = beta * u1 - u2 + (sigma * u1) * (u1**2 + u2**2)
-    du2dt = u1 + beta * u2 + (sigma * u2) * (u1**2 + u2**2)
-    return np.array([du1dt, du2dt])
-
-
-def pc_normal_hopf(u0, vars):
-    p = normal_hopf(u0, 1, vars)[0]
-    return p
-
-
-def true_hopf_normal(t, phase, vars):
-    beta = vars[0]
-
-    u1 = np.sqrt(beta) * np.cos(t + phase)
-    u2 = np.sqrt(beta) * np.sin(t + phase)
-    return np.array([u1, u2])
-
-
 
 
 def main():
