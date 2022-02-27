@@ -130,6 +130,30 @@ def pred_prey_phase_cond(x0, vars):
     return pred_prey_eq(x0, 0, vars)[0]
 
 
+def normal_hopf(u0, t, vars):
+    beta, sigma = vars[0], vars[1]
+    u1, u2 = u0[0], u0[1]
+
+    du1dt = beta * u1 - u2 + (sigma * u1) * (u1**2 + u2**2)
+    du2dt = u1 + beta * u2 + (sigma * u2) * (u1**2 + u2**2)
+    return np.array([du1dt, du2dt])
+
+
+def pc_normal_hopf(u0, vars):
+    p = normal_hopf(u0, 1, vars)[0]
+    return p
+
+
+def true_hopf_normal(t, phase, vars):
+    beta = vars[0]
+
+    u1 = np.sqrt(beta) * np.cos(t + phase)
+    u2 = np.sqrt(beta) * np.sin(t + phase)
+    return np.array([u1, u2])
+
+
+
+
 def main():
     t_eval, deltat_max, vars1 = np.linspace(0, 1000, 1000), 0.01, [1, 0.1, 0.1]
 
@@ -143,14 +167,16 @@ def main():
 
     shooting_orbit = find_shooting_orbit(pred_prey_eq, pred_prey_u0T, pred_prey_phase_cond, vars1)
 
-    print(shooting_orbit)
-    print(np.array([start_x, start_y, T]))
+    # print(shooting_orbit)
+    # print(np.array([start_x, start_y, T]))
+    #
+    # plt.plot(shooting_orbit[0], shooting_orbit[1], 'go', label='Shooting Orbit')
+    # plt.plot(start_x, start_y, 'ro', label='Manual Checked Orbit')
+    # plt.plot(sol_pred_prey[0], sol_pred_prey[1], 'b', label='Solution')
+    # plt.xlabel('x'), plt.ylabel('y'), plt.legend()
+    # plt.show()
 
-    plt.plot(shooting_orbit[0], shooting_orbit[1], 'go', label='Shooting Orbit')
-    plt.plot(start_x, start_y, 'ro', label='Manual Checked Orbit')
-    plt.plot(sol_pred_prey[0], sol_pred_prey[1], 'b', label='Solution')
-    plt.xlabel('x'), plt.ylabel('y'), plt.legend()
-    plt.show()
+
 
 
 if __name__ == '__main__':
