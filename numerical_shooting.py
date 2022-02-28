@@ -6,6 +6,7 @@ from ODE_Solvers import euler_step, rk4_step, solve_ode, solve_to
 from collections import Counter
 
 
+# predator prey equation
 def pred_prey_eq(X, t, *vars):
     x = X[0]
     y = X[1]
