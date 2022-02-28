@@ -15,6 +15,11 @@ def pred_prey_eq(X, t, *vars):
     return np.array([dxdt, dydt])
 
 
+# define the phase condition for the predator prey equations
+def pred_prey_phase_cond(x0, vars):
+    return pred_prey_eq(x0, 0, vars)[0]
+
+
 def compare_b_values(b1, b2):
     """
     A function which produces a graph to compare how the predator prey model changes for different values of b using
@@ -124,11 +129,6 @@ def find_shooting_orbit(f, u0T, phase_cond, *vars):
     G = shooting(f)
     shooting_orbit = fsolve(G, u0T, args=(phase_cond, *vars))
     return shooting_orbit
-
-
-# define the phase condition for the predator prey equations
-def pred_prey_phase_cond(x0, vars):
-    return pred_prey_eq(x0, 0, vars)[0]
 
 
 def main():

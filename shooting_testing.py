@@ -13,6 +13,7 @@ def output_tests():
     """
     Tests the outputs of find_shooting_orbit
     """
+    failed_output_tests, passed = [], True
 
     def normal_hopf(u0, t, vars):
         beta, sigma = vars[0], vars[1]
@@ -33,15 +34,27 @@ def output_tests():
         u2 = np.sqrt(beta) * np.sin(t + phase)
         return np.array([u1, u2])
 
-    passed = True
-
-    normal_hopf_u0 = np.array([1.4, 0, 6.3])
+    normal_hopf_u0 = np.array([1.3, 0, 6.1])
 
     normal_hopf_orbit = find_shooting_orbit(normal_hopf, normal_hopf_u0, pc_normal_hopf, [1, -1])
 
     shooting_u = normal_hopf_orbit[:-1]
     T = normal_hopf_orbit[-1]
     true_u = true_hopf_normal(0, T, [1, -1])
+
+    # test if the solution from shooting is close to the true solution
+    if np.allclose(true_u, shooting_u):
+        print('Supercritical-Hopf bifurcation : test passed')
+    else:
+        passed = False
+        failed_output_tests.append('Supercritical-Hopf bifurcation')
+
+    # Print the results of all the tests
+    if passed:
+        print('All output tests Passed')
+    else:
+        print('Some output tests failed: (see below)')
+        [print(test) for test in failed_output_tests]
 
 
 def main():
