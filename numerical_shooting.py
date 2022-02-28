@@ -2,8 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import fsolve
 from scipy.integrate import odeint
-from ODE_Solvers import euler_step, rk4_step, solve_ode, solve_to
 from collections import Counter
+from ODE_Solvers import euler_step, rk4_step, solve_ode, solve_to
+from value_checks import ode_checker, array_int_or_float
+
 
 
 # predator prey equation
@@ -94,7 +96,7 @@ def shooting(f):
         Function which should have a root which returns the periodic orbit of an ODE/ system of ODEs
         :param u0T: Array which contains the starting guess of the coordinates and the time period
         :param phase_con: Function of the phase condition
-        :param vars: Array of additional variables
+        :param vars: Array of any additional variables
         :return:
         """
 
@@ -124,9 +126,13 @@ def find_shooting_orbit(f, u0T, phase_cond, *vars):
     :param f: An ODE to find the time period and orbit coordinates for
     :param u0T: Array of the initial guess of the orbit location
     :param phase_cond: Phase condition for the shooting problem
-    :param vars: Array of additional variables
+    :param vars: Array of any additional variables
     :return: Returns the starting coordinates and time period of the ODE
     """
+
+    array_int_or_float(u0T, 'u0T')
+
+
     G = shooting(f)
     shooting_orbit = fsolve(G, u0T, args=(phase_cond, *vars))
     return shooting_orbit
