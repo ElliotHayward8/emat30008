@@ -9,6 +9,13 @@ from value_checks import ode_checker, array_int_or_float
 
 # predator prey equation
 def pred_prey_eq(X, t, *vars):
+    """
+    A function which defines the predator prey equations
+    :param X: Vector of parameter values (x, y)
+    :param t: Time value
+    :param vars: Additional variables to which define the equation (a, b, d)
+    :return: Array of derivatives dx/dt and dy/dt (dxdt, dydt)
+    """
     x = X[0]
     y = X[1]
     a, b, d = vars[0][0], vars[0][1], vars[0][2]

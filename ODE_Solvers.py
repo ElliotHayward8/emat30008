@@ -4,12 +4,13 @@ import time
 from value_checks import array_int_or_float, ode_checker
 
 
-def func1(x, t, *vars): # This function defines the differential equation
+def func1(x, t, *vars):
     """
     This function defines the ODE dx/dt = x
-    :param x: value of x
-    :param t: time value
-    :return: value of dx/dt = x
+    :param x: Value of x
+    :param t: Time value
+    :param vars: Additional variables which define the equation
+    :return: Value of dx/dt = x
     """
     return x
 
@@ -17,9 +18,10 @@ def func1(x, t, *vars): # This function defines the differential equation
 def func2(X, t, *vars):
     """
     This function defines the system of ODEs dx/dt = y and dy/dt = -x
-    :param t: time value
-    :param X: a vector where X = (x, y)
-    :return: returns the value of dx/dt and dy/dt at (X, t) as a numpy array
+    :param X: A vector of parameter values (x, y)
+    :param t: Time value
+    :param vars: Additional variables which define the equation
+    :return: returns an array of dx/dt and dy/dt at (X, t) as a numpy array
     """
     x = X[0]
     y = X[1]
@@ -53,7 +55,7 @@ def rk4_step(f, x0, t0, h, *vars):
     :param t0: Starting time value
     :param h: Designated step size
     :param vars: Array of any additional variables
-    :return: returns the value of function after 1 step (at t1) and t1
+    :return: returns the value of function after 1 step (at t1) and the value t1
     """
     half_h = h / 2
     k1 = f(x0, t0, *vars)
@@ -65,7 +67,7 @@ def rk4_step(f, x0, t0, h, *vars):
     return x1, t1
 
 
-def solve_to(f, x0, t0, t1, deltat_max, solver, *vars):  # solve between two t values with an initial condition x1
+def solve_to(f, x0, t0, t1, deltat_max, solver, *vars):
     """
     Solves the ODE (f) between t0 and t1 with IC = x0
     :param f: Function defining an ODE or system of ODEs
@@ -73,9 +75,9 @@ def solve_to(f, x0, t0, t1, deltat_max, solver, *vars):  # solve between two t v
     :param t0: Starting time value
     :param t1: Final time value
     :param deltat_max: Maximum step size (maximum value of h)
-    :param solver: Which solver to use ('euler'/'rk4')
+    :param solver: Defines which solver to use ('euler'/'rk4')
     :param vars: Array of any additional variables
-    :return: x value at t1
+    :return: X value at time t1
     """
     h = deltat_max
     t, x = t0, x0
@@ -102,7 +104,7 @@ def solve_ode(f, x0, t_eval, deltat_max, solver, ODEs, *vars):
     :param solver: Which solver to use ('euler'/'rk4')
     :param ODEs: True/False defining whether it is a system of ODEs or not
     :param vars: Array of any additional variables
-    :return: Returns an array of x values at each time in t_eval
+    :return: Returns an array of x values at each time value in t_eval
     """
 
     # Check the values of x0, t_eval and deltat_max
