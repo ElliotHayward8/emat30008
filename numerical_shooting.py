@@ -7,7 +7,6 @@ from ODE_Solvers import euler_step, rk4_step, solve_ode, solve_to
 from value_checks import ode_checker, array_int_or_float
 
 
-
 # predator prey equation
 def pred_prey_eq(X, t, *vars):
     x = X[0]
@@ -36,8 +35,8 @@ def compare_b_values(b1, b2):
 
     vars1, vars2 = [1, b1, 0.1], [1, b2, 0.1]
 
-    sol_b1 = solve_ode(pred_prey_eq, [0.5, 0.5], t_eval, deltat_max, rk4_step, 1, vars1)
-    sol_b2 = solve_ode(pred_prey_eq, [0.5, 0.5], t_eval, deltat_max, rk4_step, 1, vars2)
+    sol_b1 = solve_ode(pred_prey_eq, [0.5, 0.5], t_eval, deltat_max, 'rk4', 1, vars1)
+    sol_b2 = solve_ode(pred_prey_eq, [0.5, 0.5], t_eval, deltat_max, 'rk4', 1, vars2)
 
     plt.subplot(2, 1, 1)
     plt.title('b = ' + str(b1))
@@ -109,7 +108,7 @@ def shooting(f):
             """
             t_eval = np.linspace(0, T, 1000)
 
-            sol = solve_ode(f, u0, t_eval, 0.01, rk4_step, True, *vars)
+            sol = solve_ode(f, u0, t_eval, 0.01, 'rk4', True, *vars)
             return sol[:, -1]
 
         T, u0 = u0T[-1], u0T[:-1]
@@ -130,7 +129,12 @@ def find_shooting_orbit(f, u0T, phase_cond, *vars):
     :return: Returns the starting coordinates and time period of the ODE
     """
 
+    # Check the values of u0T
     array_int_or_float(u0T, 'u0T')
+
+    # Check the inputted ODE is formatted correctly
+    ode_checker(f, u0T[:-1], [u0T[-1]], *vars)
+
 
 
     G = shooting(f)
@@ -143,7 +147,7 @@ def main():
 
     pred_prey_u0T = np.array([0.60, 0.13, 30])
 
-    sol_pred_prey = solve_ode(pred_prey_eq, pred_prey_u0T[:-1], t_eval, deltat_max, rk4_step, 1, vars1)
+    sol_pred_prey = solve_ode(pred_prey_eq, pred_prey_u0T[:-1], t_eval, deltat_max, 'rk4', 1, vars1)
 
     # one value > 0.26 and one value < 0.26 are chosen to observe how the behaviour changes either side of 0.26
     # compare_b_values(0.1, 0.5)
