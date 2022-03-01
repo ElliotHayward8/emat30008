@@ -135,14 +135,11 @@ def find_shooting_orbit(f, u0T, phase_cond, *vars):
     :param vars: Array of any additional variables
     :return: Returns the starting coordinates and time period of the ODE
     """
-
     # Check the values of u0T
     array_int_or_float(u0T, 'u0T')
 
     # Check the inputted ODE is formatted correctly
     ode_checker(f, u0T[:-1], [u0T[-1]], *vars)
-
-
 
     G = shooting(f)
     shooting_orbit = fsolve(G, u0T, args=(phase_cond, *vars))

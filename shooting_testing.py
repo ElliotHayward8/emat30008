@@ -14,23 +14,80 @@ def input_tests():
     Test the response of the find_shooting_orbit function to correct and incorrect inputs
     """
 
-    def pred_prey_eq(X, t, *vars):
+    failed_input_tests, passed = [], True
+    good_vars = [1, 0.1, 0.16]
+    good_u0T = np.array([0.5, 0.5, 15])
+
+    def right_pred_prey_eq(u0, t, *vars):
         """
         A function which defines the predator prey equations
-        :param X: Vector of parameter values (x, y)
+        :param u0: Vector of initial parameter values (x, y)
         :param t: Time value
         :param vars: Additional variables which define the equation (a, b, d)
         :return: Array of derivatives dx/dt and dy/dt (dxdt, dydt)
         """
-        x = X[0]
-        y = X[1]
+        x = u0[0]
+        y = u0[1]
         a, b, d = vars[0][0], vars[0][1], vars[0][2]
         dxdt = x * (1 - x) - (a * x * y) / (d + x)
         dydt = b * y * (1 - (y / x))
         return np.array([dxdt, dydt])
 
+    # define an ode with the wrong output type
+    def wrong_type_output_ode(u0, t, *vars):
+        return 'a string not an array'
 
+    # define an ode with the wrong output size
+    def wrong_size_output_ode(u0, t, *vars):
+        return np.array([u0[0], u0[0], u0[0]])
 
+    # define the correct phase condition for the predator prey equations
+    def right_pred_prey_phase_cond(u0, vars):
+        return right_pred_prey_eq(u0, 0, vars)[0]
+
+    # define a phase condition with the wrong shape
+    def wrong_shape_prey_phase_cond(u0, *vars):
+        return [u0[0], u0[0]]
+
+    # define a phase condition with the wrong output type
+    def wrong_type_prey_phase_cond(u0, *vars):
+        return 'a string not an array'
+
+    # test it works if inputs are all correct
+    try:
+        find_shooting_orbit(right_pred_prey_eq, good_u0T, right_pred_prey_phase_cond, good_vars)
+        print('Right ODE, pc and IC test : Test Passed')
+    except (TypeError, ValueError):
+        print('Right ODE, pc and IC test : Test Failed')
+        failed_input_tests.append('Right ode, pc and IC test')
+        passed = False
+
+    # test the error works correctly if the ODE output is the wrong type
+    try:
+        find_shooting_orbit(wrong_type_output_ode, good_u0T, right_pred_prey_phase_cond, good_vars)
+        print('Wrong ODE output type test : Test Failed')
+        failed_input_tests.append('Wrong ODE output type test')
+        passed = False
+    except TypeError:
+        print('Wrong ODE output type test : Test Passed')
+
+    # test the error if the ODE is of the wrong type
+    try:
+        find_shooting_orbit('a string not a function', good_u0T, right_pred_prey_phase_cond, good_vars)
+        print('ODE not a function test : Test Failed')
+        failed_input_tests.append('ODE not a function test')
+        passed = False
+    except TypeError:
+        print('ODE not a function test : Test Passed')
+
+    # test
+    try:
+        find_shooting_orbit(wrong_size_output_ode, good_u0T, right_pred_prey_phase_cond, good_vars)
+        print('ODE with wrongly sized output test : Test Failed')
+        failed_input_tests.append('ODE with wrong sized output test')
+        passed = False
+    except ValueError:
+        print('ODE with wrongly sized output test : Test Passed')
 
 
 def output_tests():
@@ -129,6 +186,8 @@ def output_tests():
 
 
 def main():
+    input_tests()
+
     output_tests()
 
 
