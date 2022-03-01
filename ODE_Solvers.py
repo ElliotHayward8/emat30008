@@ -73,16 +73,22 @@ def solve_to(f, x0, t0, t1, deltat_max, solver, *vars):  # solve between two t v
     :param t0: Starting time value
     :param t1: Final time value
     :param deltat_max: Maximum step size (maximum value of h)
-    :param solver: Which solver to use (Euler/RK4)
+    :param solver: Which solver to use ('euler'/'rk4')
     :param vars: Array of any additional variables
     :return: x value at t1
     """
     h = deltat_max
     t, x = t0, x0
+
     while t < t1:
         if t + deltat_max > t1:
             h = t1 - t
-        x, t = solver(f, x, t, h, *vars)
+        if solver == 'euler':
+            x, t = euler_step(f, x, t, h, *vars)
+        elif solver == 'rk4':
+            x, t = rk4_step(f, x, t, h, *vars)
+        else:
+            raise NameError(f"solver : {solver} isn't present (must select 'euler' or 'rk4')")
     return x
 
 
@@ -93,7 +99,7 @@ def solve_ode(f, x0, t_eval, deltat_max, solver, ODEs, *vars):
     :param x0: Starting x value(s)
     :param t_eval: Array of time values to solve at
     :param deltat_max: Maximum step size (maximum value of h)
-    :param solver: Which solver to use (Euler/RK4)
+    :param solver: Which solver to use ('euler'/'rk4')
     :param ODEs: True/False defining whether it is a system of ODEs or not
     :param vars: Array of any additional variables
     :return: Returns an array of x values at each time in t_eval

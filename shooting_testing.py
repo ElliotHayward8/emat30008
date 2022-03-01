@@ -9,6 +9,12 @@ from numerical_shooting import find_shooting_orbit
 # A program which tests the find_shooting_orbit function
 
 
+def input_tests():
+    """
+    Test the response of the find_shooting_orbit function to correct and incorrect inputs
+    """
+
+
 def output_tests():
     """
     Tests the outputs of find_shooting_orbit
@@ -37,6 +43,7 @@ def output_tests():
         u2 = np.sqrt(beta) * np.sin(t + phase)
         return np.array([u1, u2])
 
+    # Values chosen which are close to the solution
     normal_hopf_u0 = np.array([1.3, 0, 6.1])
 
     normal_hopf_orbit = find_shooting_orbit(normal_hopf, normal_hopf_u0, pc_normal_hopf, [1, -1])
@@ -76,6 +83,7 @@ def output_tests():
         u3 = np.exp(-(t + phase))
         return np.array([u1, u2, u3])
 
+    # Values chosen which are close to real solution
     hopf_3d_u0 = np.array([1.3, 0, 1, 6.1])
 
     hopf_3d_orbit = find_shooting_orbit(hopf_3d, hopf_3d_u0, pc_hopf_3d, [1, -1])
