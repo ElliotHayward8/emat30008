@@ -80,7 +80,7 @@ def input_tests():
     except TypeError:
         print('ODE not a function test : Test Passed')
 
-    # test
+    # test the error if an ode with the wrongly sized output is used
     try:
         find_shooting_orbit(wrong_size_output_ode, good_u0T, right_pred_prey_phase_cond, good_vars)
         print('ODE with wrongly sized output test : Test Failed')
@@ -89,6 +89,32 @@ def input_tests():
     except ValueError:
         print('ODE with wrongly sized output test : Test Passed')
 
+    # test if the phase condition isn't a function
+    try:
+        find_shooting_orbit(right_pred_prey_eq, good_u0T, 'a string not a function', good_vars)
+        print('Phase condition is not a function test : Test Failed')
+        failed_input_tests.append('Phase condition is not a function test')
+        passed = False
+    except TypeError:
+        print('Phase condition is not a function test : Test Passed')
+
+    # test if the phase condition has a wrongly shaped output
+    try:
+        find_shooting_orbit(right_pred_prey_eq, good_u0T, wrong_shape_prey_phase_cond, good_vars)
+        print('Phase condition with wrongly sized output test : Test Failed')
+        failed_input_tests.append('Phase condition with wrongly sized output test')
+        passed = False
+    except TypeError:
+        print('Phase condition with wrongly sized output test : Test Passed')
+
+    # test
+    try:
+        find_shooting_orbit(right_pred_prey_eq, good_u0T, wrong_type_prey_phase_cond, good_vars)
+        print('Phase condition with output of the wrong type test : Test Failed')
+        failed_input_tests.append('Phase condition with wrongly sized output test')
+        passed = False
+    except TypeError:
+        print('Phase condition with output of the wrong type test : Test Passed')
 
 def output_tests():
     """

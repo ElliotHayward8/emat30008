@@ -141,6 +141,18 @@ def find_shooting_orbit(f, u0T, phase_cond, *vars):
     # Check the inputted ODE is formatted correctly
     ode_checker(f, u0T[:-1], [u0T[-1]], *vars)
 
+    # Check the inputted phase condition is formatted correctly
+    if callable(phase_cond):
+
+        pc_val = phase_cond(u0T[:-1], *vars)
+
+        # check the phase condition returns an int or float
+        if not isinstance(pc_val, (int, float, np.int_, np.float_)):
+            raise TypeError(f"Output of f is of the type {type(pc_val)}. It should be an int or a float")
+
+    else:
+        raise TypeError(f"phase_cond: '{phase_cond}' must be a callable function.")
+
     G = shooting(f)
     shooting_orbit = fsolve(G, u0T, args=(phase_cond, *vars))
     return shooting_orbit

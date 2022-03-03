@@ -32,7 +32,7 @@ def ode_checker(f, x0, t_eval, *vars):
         test_t = t_eval[0]
         test_x1 = f(x0, test_t, *vars)
 
-        if isinstance(test_x1, (int, np.int_, np.float_, list, np.ndarray)):
+        if isinstance(test_x1, (int, float, np.int_, np.float_, list, np.ndarray)):
             if not np.array(test_x1).shape == np.array(x0).shape:
                 raise ValueError("Incorrect shape of ODE or x0 (shape of x0 and output of f aren't the same)")
         else:
