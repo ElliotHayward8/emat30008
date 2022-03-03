@@ -65,11 +65,11 @@ def input_tests():
     # test the error works correctly if the ODE output is the wrong type
     try:
         find_shooting_orbit(wrong_type_output_ode, good_u0T, right_pred_prey_phase_cond, good_vars)
-        print('Wrong ODE output type test : Test Failed')
-        failed_input_tests.append('Wrong ODE output type test')
+        print('ODE with wrong output type test : Test Failed')
+        failed_input_tests.append('ODE with wrong output type test')
         passed = False
     except TypeError:
-        print('Wrong ODE output type test : Test Passed')
+        print('ODE with wrong output type test : Test Passed')
 
     # test the error if the ODE is of the wrong type
     try:
@@ -115,6 +115,17 @@ def input_tests():
         passed = False
     except TypeError:
         print('Phase condition with output of the wrong type test : Test Passed')
+
+    # Print the results of all the input tests
+    if passed:
+        print('\n---------------------------------------\n')
+        print('ALL SHOOTING INPUT TESTS PASSED')
+        print('\n---------------------------------------\n')
+    else:
+        print('\n---------------------------------------\n')
+        print('Some input tests failed: (see below)')
+        [print(test) for test in failed_input_tests]
+        print('\n---------------------------------------\n')
 
 def output_tests():
     """
@@ -199,7 +210,7 @@ def output_tests():
         failed_output_tests.append('3D Hopf bifurcation output test')
         print('3D Hopf bifurcation : Test Failed')
 
-    # Print the results of all the tests
+    # Print the results of all the output tests
     if passed:
         print('\n---------------------------------------\n')
         print('ALL SHOOTING OUTPUT TESTS PASSED')
