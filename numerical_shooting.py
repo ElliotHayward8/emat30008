@@ -61,36 +61,6 @@ def compare_b_values(b1, b2):
     plt.show()
 
 
-def inspection_xy_period(x, y, t_eval, dp=4):
-    """
-    This function finds the time period of the x values
-    :param x: List of x values
-    :param y: List of y values
-    :param t_eval: The t values corresponding to the values of x
-    :param dp: The number of decimal places to round all the values of x to
-    :return: returns the starting x and y value of an orbit alongside the time period of the orbit
-    """
-
-    round_x = [np.round(num, dp) for num in x]  # round all values in list to dp decimal places
-    most_common_x = Counter(round_x).most_common(1)[0][0] # find the most common x value
-
-    # find the time values of the most common value
-    all_t_val = t_eval[np.where(round_x == most_common_x)]
-
-    # calculate the time period by getting the time separation between these values
-    t_val_list = []
-    for i in range(len(all_t_val) - 1):
-        t_val_list.append(all_t_val[i + 1] - all_t_val[i])
-
-    # Take correct time period as the smallest value within the list
-    t_per = min(t_val_list)
-
-    start_index = round_x.index(most_common_x)
-    most_common_y = y[start_index]
-
-    return most_common_x, most_common_y, t_per
-
-
 def shooting(f):
     """
     Construct the shooting root-finding problem for a given ODE
@@ -167,18 +137,15 @@ def main():
 
     # one value > 0.26 and one value < 0.26 are chosen to observe how the behaviour changes either side of 0.26
     # compare_b_values(0.1, 0.5)
-    start_x, start_y, T = inspection_xy_period(sol_pred_prey[0], sol_pred_prey[1], t_eval)
 
     shooting_orbit = find_shooting_orbit(pred_prey_eq, pred_prey_u0T, pred_prey_phase_cond, vars1)
 
-    # print(shooting_orbit)
-    # print(np.array([start_x, start_y, T]))
-    #
-    # plt.plot(shooting_orbit[0], shooting_orbit[1], 'go', label='Shooting Orbit')
-    # plt.plot(start_x, start_y, 'ro', label='Manual Checked Orbit')
-    # plt.plot(sol_pred_prey[0], sol_pred_prey[1], 'b', label='Solution')
-    # plt.xlabel('x'), plt.ylabel('y'), plt.legend()
-    # plt.show()
+    print(shooting_orbit)
+
+    plt.plot(shooting_orbit[0], shooting_orbit[1], 'go', label='Shooting Orbit')
+    plt.plot(sol_pred_prey[0], sol_pred_prey[1], 'b', label='Solution')
+    plt.xlabel('x'), plt.ylabel('y'), plt.legend()
+    plt.show()
 
 
 

@@ -107,7 +107,7 @@ def input_tests():
     except TypeError:
         print('Phase condition with wrongly sized output test : Test Passed')
 
-    # test
+    # test if the phase condition has the wrongly sized output
     try:
         find_shooting_orbit(right_pred_prey_eq, good_u0T, wrong_type_prey_phase_cond, good_vars)
         print('Phase condition with output of the wrong type test : Test Failed')
@@ -127,14 +127,22 @@ def input_tests():
         [print(test) for test in failed_input_tests]
         print('\n---------------------------------------\n')
 
+
 def output_tests():
     """
-    Tests the outputs of find_shooting_orbit
+    Tests for the outputs of find_shooting_orbit
     """
     failed_output_tests, passed = [], True
 
     # normal hopf bifurcation function
     def normal_hopf(u0, t, vars):
+        """
+        Function which defines the Hopf bifurcation normal form system of ODEs
+        :param u0: Parameter values (u1, u2)
+        :param t: Time value
+        :param vars: Additional variables which are required to define the system of ODEs
+        :return:
+        """
         beta, sigma = vars[0], vars[1]
         u1, u2 = u0[0], u0[1]
 
