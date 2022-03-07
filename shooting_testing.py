@@ -167,7 +167,6 @@ def output_tests():
     normal_hopf_u0 = np.array([1.3, 0, 6.1])
 
     normal_hopf_orbit = find_shooting_orbit(normal_hopf, normal_hopf_u0, pc_normal_hopf, [1, -1])
-
     shooting_u, T = normal_hopf_orbit[:-1], normal_hopf_orbit[-1]
     true_u = true_hopf_normal(0, T, [1, -1])
 

@@ -4,7 +4,7 @@ import numpy as np
 
 def array_int_or_float(var, var_name):
     """
-    A function which checks if an array contains only integer or float values (for example for t_eval)
+    A function which checks if a variable contains only integer or float values (for example for t_eval)
     :param var: Variable to check the values of
     :param var_name: Name of the variable
     """
@@ -20,7 +20,7 @@ def ode_checker(f, x0, t_eval, *vars):
     """
     A function which checks that the ode specified is a callable function and that it has outputs which match the
     size/shape of the initial conditions. If these conditions aren't met an error message which corresponds to the
-    correct error will be raised
+    correct error is raised
     :param f: ODE to be checked
     :param x0: Initial conditions
     :param t_eval: Specified list of time values

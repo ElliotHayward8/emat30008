@@ -129,9 +129,9 @@ def find_shooting_orbit(f, u0T, phase_cond, *vars):
 
 
 def main():
-    t_eval, deltat_max, vars1 = np.linspace(0, 1000, 1000), 0.01, [1, 0.1, 0.1]
+    t_eval, deltat_max, vars1 = np.linspace(0, 1000, 1000), 0.01, [1, 0.2, 0.1]
 
-    pred_prey_u0T = np.array([0.60, 0.13, 30])
+    pred_prey_u0T = np.array([0.58, 0.285, 21])
 
     sol_pred_prey = solve_ode(pred_prey_eq, pred_prey_u0T[:-1], t_eval, deltat_max, 'rk4', 1, vars1)
 
@@ -142,12 +142,13 @@ def main():
 
     print(shooting_orbit)
 
-    plt.plot(shooting_orbit[0], shooting_orbit[1], 'go', label='Shooting Orbit')
-    plt.plot(sol_pred_prey[0], sol_pred_prey[1], 'b', label='Solution')
-    plt.xlabel('x'), plt.ylabel('y'), plt.legend()
+    #plt.plot(shooting_orbit[0], shooting_orbit[1], 'go', label='Shooting Orbit')
+    #plt.plot(sol_pred_prey[0], sol_pred_prey[1], 'b', label='Solution')
+    #plt.xlabel('x'), plt.ylabel('y'), plt.legend()
+
+    plt.plot(t_eval, sol_pred_prey[0], 'r', label='x')
+    plt.plot(t_eval,  sol_pred_prey[1], 'g', label='y')
     plt.show()
-
-
 
 
 if __name__ == '__main__':
