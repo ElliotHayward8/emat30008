@@ -106,7 +106,7 @@ def solve_ode(f, x0, t_eval, deltat_max, solver, ODEs, *vars):
     :param vars: Array of any additional variables
     :return: Returns an array of x values at each time value in t_eval
     """
-
+    print('start solve_ode ' + str(vars))
     # Check the values of x0, t_eval and deltat_max
     array_int_or_float(x0, 'x0 (initial condition)')
     array_int_or_float(t_eval, 't_eval')
@@ -144,8 +144,8 @@ def func1_error_graph(f, N, x0, t0, t1, *vars):
     """
     x_error_list, deltat_max_list, xn_error_list = [], [], []
     for deltat_max in np.logspace(-N, -1, 2*N):
-        x1 = solve_to(f, x0, t0, t1, deltat_max, euler_step, *vars)
-        xn = solve_to(f, x0, t0, t1, deltat_max, rk4_step, *vars)
+        x1 = solve_to(f, x0, t0, t1, deltat_max, 'euler', *vars)
+        xn = solve_to(f, x0, t0, t1, deltat_max, 'rk4', *vars)
         x_error_list.append(abs(np.exp(1) - x1))
         xn_error_list.append(abs(np.exp(1) - xn))
         deltat_max_list.append(deltat_max)
@@ -172,12 +172,12 @@ def time_methods(f, x0, t0, t1, *vars):
     time0 = time.time()
     n = 0
     while n < 10000:
-        x1 = solve_to(f, x0, t0, t1, 0.00068895, euler_step, *vars)
+        x1 = solve_to(f, x0, t0, t1, 0.00068895, 'euler', *vars)
         n += 1
     time1 = time.time()
     n = 0
     while n < 10000:
-        xn = solve_to(f, x0, t0, t1, 0.5, rk4_step, *vars)
+        xn = solve_to(f, x0, t0, t1, 0.5, 'rk4', *vars)
         n += 1
     time2 = time.time()
     print('Euler time = ' + str(time1 - time0))
@@ -206,9 +206,9 @@ def func2_comparison_graph(deltat_max, time_periods, x0, total_time, *vars):
     :param vars: Array of any additional variables
     """
     t = np.linspace(0, total_time, time_periods)
-    euler_sol = solve_ode(func2, x0, t, deltat_max, euler_step, True, *vars)
+    euler_sol = solve_ode(func2, x0, t, deltat_max, 'euler', True, *vars)
     euler_sol_x, euler_sol_y = euler_sol[0], euler_sol[1]
-    rk4_sol = solve_ode(func2, x0, t, deltat_max, rk4_step, True, *vars)
+    rk4_sol = solve_ode(func2, x0, t, deltat_max, 'rk4', True, *vars)
     rk4_sol_x, rk4_sol_y = rk4_sol[0], rk4_sol[1]
     sol = true_func2(t)
     sol_x, sol_y = sol[0], sol[1]

@@ -67,6 +67,8 @@ def shooting(f):
     :param f: ODE to use the shooting root-finding method on
     :return: Returns the function G which can be solved to find the root which will solve the shooting problem
     """
+    print('start of shooting ' + str(vars))
+
     def G(u0T, phase_con, *vars):
         """
         Function which should have a root which returns the periodic orbit of an ODE/ system of ODEs
@@ -75,6 +77,7 @@ def shooting(f):
         :param vars: Array of any additional variables
         :return:
         """
+        print('start of G ' + str(vars))
 
         def F(u0, T):
             """
@@ -84,7 +87,7 @@ def shooting(f):
             :return: Returns the solution of the ODE at time T using the rk4 method
             """
             t_eval = np.linspace(0, T, 1000)
-
+            print('F ' + str(vars))
             sol = solve_ode(f, u0, t_eval, 0.01, 'rk4', True, *vars)
             return sol[:, -1]
 

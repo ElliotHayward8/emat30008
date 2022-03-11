@@ -26,6 +26,7 @@ def ode_checker(f, x0, t_eval, *vars):
     :param t_eval: Specified list of time values
     :param vars: Array of any additional variables
     """
+    print('ode_checker start vars' + str(vars))
     if callable(f):
 
         # Test the output of the ODE (f) is the same as x0
