@@ -128,11 +128,6 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
 
 
 def main():
-    # Set problem parameters/functions
-    kappa = 1.0  # diffusion constant - how easily diffusion occurs
-    L = 1.0         # length of spatial domain
-    T = 100        # total time to solve for
-
     def u_i(x, p=1):
         # initial temperature distribution
         y = (np.sin(pi * x / L)) ** p
@@ -143,11 +138,16 @@ def main():
         y = np.exp(-kappa * (pi ** 2 / L ** 2) * t) * np.sin(pi * x / L)
         return y
 
-    x, u_j = forward_euler(u_i, 10, 100000, kappa, L, T, 0, 0)
+    # Set problem parameters/functions
+    kappa = 1.0  # diffusion constant - how easily diffusion occurs
+    L = 1.0  # length of spatial domain
+    T, mt = 0.5, 3000  # total time to solve for and number of time values
 
-    z_fe, u_j_fe = fe_matrix_vector_form(u_i, 10, 100000, kappa, L, T, 0, 0)
+    x, u_j = forward_euler(u_i, 10, mt, kappa, L, T, 0, 0)
 
+    z_fe, u_j_fe = fe_matrix_vector_form(u_i, 10, mt, kappa, L, T, 0, 0)
 
+    print(np.allclose(u_j, u_j_fe))
     xx = np.linspace(0, L, 250)
 
     # Plot the final result and exact solution
