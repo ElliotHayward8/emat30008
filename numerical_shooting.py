@@ -145,9 +145,9 @@ def main():
 
     print(shooting_orbit)
 
-    #plt.plot(shooting_orbit[0], shooting_orbit[1], 'go', label='Shooting Orbit')
-    #plt.plot(sol_pred_prey[0], sol_pred_prey[1], 'b', label='Solution')
-    #plt.xlabel('x'), plt.ylabel('y'), plt.legend()
+    # plt.plot(shooting_orbit[0], shooting_orbit[1], 'go', label='Shooting Orbit')
+    # plt.plot(sol_pred_prey[0], sol_pred_prey[1], 'b', label='Solution')
+    # plt.xlabel('x'), plt.ylabel('y'), plt.legend()
 
     plt.plot(t_eval, sol_pred_prey[0], 'r', label='x')
     plt.plot(t_eval,  sol_pred_prey[1], 'g', label='y')
