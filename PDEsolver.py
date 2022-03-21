@@ -201,7 +201,18 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, method='forward_euler'
         raise TypeError(f"bc_0: {bc_0} is not an integer or float")
 
     if not isinstance(bc_L, (int, np.int_, float, np.float_)):
-        raise TypeError(f"bc_0: {bc_L} is not an integer or float")
+        raise TypeError(f"bc_L: {bc_L} is not an integer or float")
+
+    # Check that L is a float or integer
+    if not isinstance(L, (int, np.int_, float, np.float_)):
+        raise TypeError(f"L: {L} is not an integer or float")
+
+    # Check that mx and mt are integers
+    if not isinstance(mx, (int, np.int_)):
+        raise TypeError(f"mx: {mx} is not an integer")
+
+    if not isinstance(mt, (int, np.int_)):
+        raise TypeError(f"mt: {mt} is not an integer")
 
     if callable(u_i_func):
         u_i_L = u_i_func(L)
