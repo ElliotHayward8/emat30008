@@ -48,12 +48,6 @@ def forward_euler(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     :param bc_L: Boundary condition at x = L
     :return: Solution of PDE at time T
     """
-    # Check that the boundary conditions given are an integer or a float
-    if not isinstance(bc_0, (int, np.int_, float, np.float_)):
-        raise TypeError(f"bc_0: {bc_0} is not an integer")
-
-    if not isinstance(bc_L, (int, np.int_, float, np.float_)):
-        raise TypeError(f"bc_0: {bc_L} is not an integer")
 
     # Set up the numerical environment variables
     x = np.linspace(0, L, mx + 1)  # mesh points in space
@@ -101,13 +95,6 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     :param bc_L: Boundary condition at x = L
     :return: Solution of PDE at time T
     """
-
-    # Check that the boundary conditions given are an integer or a float
-    if not isinstance(bc_0, (int, np.int_, float, np.float_)):
-        raise TypeError(f"bc_0: {bc_0} is not an integer or float")
-
-    if not isinstance(bc_L, (int, np.int_, float, np.float_)):
-        raise TypeError(f"bc_0: {bc_L} is not an integer or float")
 
     # Set up the numerical environment variables
     x, t = np.linspace(0, L, mx + 1), np.linspace(0, T, mt + 1)    # mesh points in space and time
@@ -159,13 +146,6 @@ def be_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     :return: Solution of PDE at time T
     """
 
-    # Check that the boundary conditions given are an integer or a float
-    if not isinstance(bc_0, (int, np.int_, float, np.float_)):
-        raise TypeError(f"bc_0: {bc_0} is not an integer or float")
-
-    if not isinstance(bc_L, (int, np.int_, float, np.float_)):
-        raise TypeError(f"bc_0: {bc_L} is not an integer or float")
-
     # Set up the numerical environment variables
     x, t = np.linspace(0, L, mx + 1), np.linspace(0, T, mt + 1)  # mesh points in space and time
     deltax, deltat = x[1] - x[0], t[1] - t[0]  # grid spacing in x and t
@@ -216,18 +196,30 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, method='forward_euler'
     :return: Solution of PDE at time T
     """
 
-    if method == 'forward_euler':
-        x, u_j = forward_euler(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L)
-    elif method == 'fe matrix vector':
-        x, u_j = fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L)
-    elif method == 'be matrix vector':
-        x, u_j = be_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L)
-    # elif method == 'crank nicholson':
+    # Check that the boundary conditions given are an integer or a float
+    if not isinstance(bc_0, (int, np.int_, float, np.float_)):
+        raise TypeError(f"bc_0: {bc_0} is not an integer or float")
 
+    if not isinstance(bc_L, (int, np.int_, float, np.float_)):
+        raise TypeError(f"bc_0: {bc_L} is not an integer or float")
+
+    if callable(u_i_func):
+        u_i_L = u_i_func(L)
+        if not isinstance(u_i_L, (int, np.int_, float, np.float_)):
+            raise TypeError(f"u_i_L: {u_i_L} must be a float or integer")
+        if method == 'forward_euler':
+            x, u_j = forward_euler(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L)
+        elif method == 'fe matrix vector':
+            x, u_j = fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L)
+        elif method == 'be matrix vector':
+            x, u_j = be_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L)
+        # elif method == 'crank nicholson':
+
+        else:
+            raise NameError(f"method : {method} isn't present (must select 'forward_euler' or "
+                            f"'fe matrix vector')")
     else:
-        raise NameError(f"method : {method} isn't present (must select 'forward_euler' or "
-                        f"'fe matrix vector')")
-
+        raise TypeError(f"u_i_func: {u_i_func} is not a callable function")
     return x, u_j
 
 
