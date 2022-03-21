@@ -16,9 +16,10 @@ def pred_prey_eq(X, t, pars):
     :param pars: Additional parameters which define the equation (a, b, d)
     :return: Array of derivatives dx/dt and dy/dt (dxdt, dydt)
     """
+    print(pars)
     x = X[0]
     y = X[1]
-    a, b, d = pars[0][0], pars[0][1], pars[0][2]
+    a, b, d = pars[0], pars[1], pars[2]
     dxdt = x * (1 - x) - (a * x * y) / (d + x)
     dydt = b * y * (1 - (y / x))
     return np.array([dxdt, dydt])
@@ -127,7 +128,7 @@ def find_shooting_orbit(f, u0T, phase_cond, *pars):
         raise TypeError(f"phase_cond: '{phase_cond}' must be a callable function.")
 
     G = shooting(f)
-    shooting_orbit = fsolve(G, u0T, args=(phase_cond, *pars))
+    shooting_orbit = fsolve(G, u0T, args=(phase_cond, *pars), full_output=True)
     return shooting_orbit
 
 

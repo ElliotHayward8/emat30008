@@ -37,7 +37,7 @@ def create_tri_diag_mat(main_diag_len, low_diag, main_diag, high_diag):
 # Solve the PDE: loop over all the time points
 def forward_euler(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     """
-    A function which performs the forward euler methpd on the heat equation
+    A function which performs the forward euler method on the heat equation
     :param u_i_func: Function which defines the prescribed initial temperature
     :param mx: Number of grid points in space
     :param mt: Number of grid points in time
@@ -84,7 +84,7 @@ def forward_euler(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
 
 def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     """
-    A function which performs the forward Euler schem in matrix/vector form on the heat equation
+    A function which performs the forward Euler scheme in matrix/vector form on the heat equation
     :param u_i_func: Function which defines the prescribed initial temperature
     :param mx: Number of grid points in space
     :param mt: Number of grid points in time
@@ -134,7 +134,7 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
 
 def be_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     """
-    A function which performs the forward Euler schem in matrix/vector form on the heat equation
+    A function which performs the backward Euler scheme in matrix/vector form on the heat equation
     :param u_i_func: Function which defines the prescribed initial temperature
     :param mx: Number of grid points in space
     :param mt: Number of grid points in time
@@ -181,6 +181,21 @@ def be_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     return x, u_j
 
 
+def c_n(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
+    """
+    A function which performs the Crank Nicholson scheme in matrix/vector form on the heat equation
+    :param u_i_func: Function which defines the prescribed initial temperature
+    :param mx: Number of grid points in space
+    :param mt: Number of grid points in time
+    :param kappa: Diffusion constant
+    :param L: Length of the spacial domain
+    :param T: Total time to solve for
+    :param bc_0: Boundary condition at x = 0
+    :param bc_L: Boundary condition at x = L
+    :return: Solution of PDE at time T
+    """
+
+
 def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, method='forward_euler'):
     """
     Function which solves a PDE using the inputted method
@@ -225,6 +240,7 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, method='forward_euler'
         elif method == 'be matrix vector':
             x, u_j = be_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L)
         # elif method == 'crank nicholson':
+            # x, u_j = c_n(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L)
 
         else:
             raise NameError(f"method : {method} isn't present (must select 'forward_euler' or "
@@ -248,13 +264,14 @@ def main():
     # Set problem parameters/functions
     kappa = 1.0  # diffusion constant - how easily diffusion occurs
     L = 1.0  # length of spatial domain
-    T, mt = 0.5, 3000  # total time to solve for and number of time values
+    T, mt = 0.5, 1000  # total time to solve for and number of time values
+    mx = 10
 
-    x, u_j = pde_solver(u_i, 10, 3000, 1.0, L, T, 0, 0, 'forward_euler')
+    x, u_j = pde_solver(u_i, mx, mt, 1.0, L, T, 0, 0, 'forward_euler')
 
-    x_fe, u_j_fe = pde_solver(u_i, 10, 3000, 1.0, L, T, 0, 0, 'fe matrix vector')
+    x_fe, u_j_fe = pde_solver(u_i, mx, mt, 1.0, L, T, 0, 0, 'fe matrix vector')
 
-    x_be, u_j_be = pde_solver(u_i, 10, 3000, 1.0, L, T, 0, 0, 'be matrix vector')
+    x_be, u_j_be = pde_solver(u_i, mx, mt, 1.0, L, T, 0, 0, 'be matrix vector')
 
     # Check that forward euler and the matrix vector form return the same answer
     print('Do Forward Euler and matrix vector form return the same u values : ' + str(np.allclose(u_j, u_j_fe)))
@@ -262,7 +279,8 @@ def main():
     xx = np.linspace(0, L, 250)
 
     # Plot the final result and exact solution
-    plt.plot(x, u_j_fe, 'ro', label='num')
+    plt.plot(x, u_j_be, 'go', label='Backward Euler')
+    plt.plot(x, u_j_fe, 'ro', label='Forward Euler')
     plt.plot(xx, u_exact(xx, T), 'b-', label='exact')
     plt.xlabel('x')
     plt.ylabel('u(x,' + str(T) + ')')
