@@ -29,6 +29,14 @@ def input_tests():
         failed_input_tests.append('Correct input PDE solver test')
         passed = False
 
+    # Test the forward euler method when the lambda value isn't within [0, 0.5]
+    try:
+        pde_solver(u_i, right_mx + 100, right_mt, right_kappa, L, right_T, right_bc_0, right_bc_L)
+        print('Lambda outside of range test : Test Failed')
+        failed_input_tests.append('Lambda outside of range test')
+    except ValueError:
+        print('Lambda outside of range test : Test Passed')
+
     # Test the function when IC isn't a function
     try:
         pde_solver(5, right_mx, right_mt, right_kappa, L, right_T, right_bc_0, right_bc_L)
