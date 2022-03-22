@@ -104,7 +104,7 @@ def solve_ode(f, x0, t_eval, deltat_max, solver, ODEs, *pars):
     :param pars: Array of any additional parameters
     :return: Returns an array of x values at each time value in t_eval
     """
-    print('start solve_ode ' + str(pars))
+    # print('start solve_ode ' + str(pars))
     # Check the values of x0, t_eval and deltat_max
     array_int_or_float(x0, 'x0 (initial condition)')
     array_int_or_float(t_eval, 't_eval')

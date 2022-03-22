@@ -69,6 +69,14 @@ def input_tests():
     except TypeError:
         print('mt of the wrong type test : Test Passed')
 
+    # Test the function if kappa is of the wrong type
+    try:
+        pde_solver(u_i, right_mx, right_mt, [1, 1], L, right_T, right_bc_0, right_bc_L)
+        print('kappa of the wrong type test : Test Failed')
+        failed_input_tests.append('kappa of the wrong type test')
+    except TypeError:
+        print('kappa of the wrong type test : Test Passed')
+
     # test the function if L is of the wrong type
     try:
         pde_solver(u_i, right_mx, right_mt, right_kappa, [1, 1], right_T, right_bc_0, right_bc_L)
@@ -84,7 +92,7 @@ def input_tests():
         print('\n---------------------------------------\n')
     else:
         print('\n---------------------------------------\n')
-        print('Some input tests failed: (see below)')
+        print('Some input tests failed: (see printed below)')
         [print(test) for test in failed_input_tests]
         print('\n---------------------------------------\n')
 
@@ -119,7 +127,7 @@ def output_tests():
         print('\n---------------------------------------')
     else:
         print('\n---------------------------------------\n')
-        print('Some output tests failed: (see below)')
+        print('Some output tests failed: (see printed below)')
         [print(test) for test in failed_output_tests]
         print('\n---------------------------------------')
 
