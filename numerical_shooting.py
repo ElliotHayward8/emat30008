@@ -128,9 +128,14 @@ def find_shooting_orbit(f, u0T, phase_cond, *pars):
         raise TypeError(f"phase_cond: '{phase_cond}' must be a callable function.")
 
     G = shooting(f)
-    shooting_orbit = fsolve(G, u0T, args=(phase_cond, *pars), full_output=True)
-    return shooting_orbit
+    fsolve_sol = fsolve(G, u0T, args=(phase_cond, *pars), full_output=True)
+    shooting_orbit = fsolve_sol[0]
+    converge = fsolve_sol[-2]
 
+    if converge == 1:
+        return shooting_orbit
+    else:
+        raise TypeError("fsolve was unable to converge")
 
 def main():
     t_eval, deltat_max, pars1 = np.linspace(0, 1000, 1000), 0.01, [1, 0.2, 0.1]
