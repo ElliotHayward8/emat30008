@@ -58,6 +58,10 @@ def forward_euler(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     # calculate the value of lambda, stability requires 0 < lambda < 0.5
     lmbda = kappa * deltat / (deltax ** 2)  # mesh fourier number
 
+    # Check lambda is within the stable range
+    if not lmbda > 0 or not lmbda < 0.5:
+        raise ValueError(f"lmbda: {lmbda} is not within the range 0 < lmbda < 0.5")
+
     # print the value of variables
     # print("deltax = ", deltax), print("deltat = ", deltat), print("lambda = ", lmbda)
 
@@ -102,6 +106,10 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
 
     # calculate the value of lambda, stability requires 0 < lambda < 0.5
     lmbda = kappa * deltat / (deltax ** 2)  # mesh fourier number
+
+    # Check lambda is within the stable range
+    if not lmbda > 0 and not lmbda < 0.5:
+        raise ValueError(f"lmbda: {lmbda} is not within the range 0 < lmbda < 0.5")
 
     # create the A_FE tridiagonal matrix
     a_fe = create_tri_diag_mat(mx - 1, lmbda, 1 - (2 * lmbda), lmbda)
@@ -150,7 +158,7 @@ def be_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     x, t = np.linspace(0, L, mx + 1), np.linspace(0, T, mt + 1)  # mesh points in space and time
     deltax, deltat = x[1] - x[0], t[1] - t[0]  # grid spacing in x and t
 
-    # calculate the value of lambda, stability requires 0 < lambda < 0.5
+    # calculate the value of lambda
     lmbda = kappa * deltat / (deltax ** 2)  # mesh fourier number
 
     # create the A_BE tridiagonal matrix
@@ -194,6 +202,12 @@ def c_n(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     :param bc_L: Boundary condition at x = L
     :return: Solution of PDE at time T
     """
+    # Set up the numerical environment variables
+    x, t = np.linspace(0, L, mx + 1), np.linspace(0, T, mt + 1)  # mesh points in space and time
+    deltax, deltat = x[1] - x[0], t[1] - t[0]  # grid spacing in x and t
+
+    # calculate the value of lambda
+    lmbda = kappa * deltat / (deltax ** 2)  # mesh fourier number
 
 
 def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, method='forward_euler'):
