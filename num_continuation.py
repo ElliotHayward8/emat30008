@@ -24,7 +24,6 @@ def normal_hopf(u0, t, pars):
     :param pars: Additional parameters which are required to define the system of ODEs (beta, sigma)
     :return: returns an array of du1/dt and du2/dt at (X, t) as a numpy array
     """
-    print('Normal hopf pars' + str(pars))
     beta, sigma = pars[0], pars[1]
     u1, u2 = u0[0], u0[1]
 

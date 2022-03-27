@@ -16,7 +16,6 @@ def pred_prey_eq(X, t, pars):
     :param pars: Additional parameters which define the equation (a, b, d)
     :return: Array of derivatives dx/dt and dy/dt (dxdt, dydt)
     """
-    print(pars)
     x = X[0]
     y = X[1]
     a, b, d = pars[0], pars[1], pars[2]
@@ -68,7 +67,6 @@ def shooting(f):
     :param f: ODE to use the shooting root-finding method on
     :return: Returns the function G which can be solved to find the root which will solve the shooting problem
     """
-    # print('start of shooting ' + str(pars))
 
     def G(u0T, phase_con, *pars):
         """
@@ -78,7 +76,6 @@ def shooting(f):
         :param pars: Array of any additional parameters
         :return:
         """
-        # print('start of G ' + str(pars))
 
         def F(u0, T):
             """
