@@ -8,7 +8,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from math import pi
-from value_checks import array_int_or_float
 from scipy.sparse import diags
 from scipy.sparse.linalg import spsolve
 
@@ -59,11 +58,8 @@ def forward_euler(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     lmbda = kappa * deltat / (deltax ** 2)  # mesh fourier number
 
     # Check lambda is within the stable range
-    if not lmbda > 0 or not lmbda < 0.5:
+    if lmbda <= 0 or lmbda >= 0.5:
         raise ValueError(f"lmbda: {lmbda} is not within the range 0 < lmbda < 0.5")
-
-    # print the value of variables
-    # print("deltax = ", deltax), print("deltat = ", deltat), print("lambda = ", lmbda)
 
     u_j, u_jp1 = np.zeros(x.size), np.zeros(x.size)  # u at current and next time step
 
@@ -108,7 +104,7 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     lmbda = kappa * deltat / (deltax ** 2)  # mesh fourier number
 
     # Check lambda is within the stable range
-    if not lmbda > 0 and not lmbda < 0.5:
+    if lmbda <= 0 or lmbda >= 0.5:
         raise ValueError(f"lmbda: {lmbda} is not within the range 0 < lmbda < 0.5")
 
     # create the A_FE tridiagonal matrix
@@ -209,6 +205,36 @@ def c_n(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     # calculate the value of lambda
     lmbda = kappa * deltat / (deltax ** 2)  # mesh fourier number
 
+    # Create the a_cn and b_cn matrices
+    a_cn = create_tri_diag_mat(mx - 1, -lmbda / 2, 1 + lmbda, -lmbda / 2)
+    b_cn = create_tri_diag_mat(mx - 1, lmbda / 2, 1 - lmbda, lmbda / 2)
+    u_j, u_jp1 = np.zeros(x.size), np.zeros(x.size)  # u at current and next time step
+
+    # Set initial condition
+    for i in range(0, mx + 1):
+        u_j[i] = u_i_func(x[i])
+
+    sliced_u_j = np.vstack(u_j[1:-1])
+    sliced_u_j = b_cn.dot(sliced_u_j)
+
+    u_jp1 = spsolve(a_cn, sliced_u_j)
+
+    u_jp1 = np.append(u_jp1, bc_L)
+    u_j = np.insert(u_jp1, 0, bc_0, axis=0)
+
+    for j in range(0, mt - 1):
+        # Forward Euler time step at inner mesh points
+        # PDE discretised at position x[i], time t[j]
+        sliced_u_j = np.vstack(u_j[1:-1])
+        sliced_u_j = b_cn.dot(sliced_u_j)
+
+        u_j = spsolve(a_cn, sliced_u_j)
+        # Boundary conditions
+        u_j = np.append(u_j, bc_L)
+        u_j = np.insert(u_j, 0, bc_0, axis=0)
+
+    return x, u_j
+
 
 def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, method='forward_euler'):
     """
@@ -257,8 +283,8 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, method='forward_euler'
             x, u_j = fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L)
         elif method == 'be matrix vector':
             x, u_j = be_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L)
-        # elif method == 'crank nicholson':
-            # x, u_j = c_n(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L)
+        elif method == 'crank nicholson':
+            x, u_j = c_n(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L)
 
         else:
             raise NameError(f"method : {method} isn't present (must select 'forward_euler' or "
@@ -268,7 +294,100 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, method='forward_euler'
     return x, u_j
 
 
+def error_with_time(u_i, u_exact, mt_values):
+    """
+    Function which measures how the error of the methods changes as mt changes
+    :param u_i: Function which defines the prescribed initial temperature
+    :param u_exact: exact solution of u
+    :param mt_values: Values of mt
+    """
+    # Set problem parameters/functions
+    kappa = 1.0  # diffusion constant - how easily diffusion occurs
+    T, mx, L = 0.5, 8, 1.0  # total time to solve for and number of spatial values, length of spatial domain
+
+    # Set up the numerical environment variables
+    x = np.linspace(0, L, mx + 1)  # mesh points in space
+    mt_count, mt_num = 0, len(mt_values)
+
+    u_j_cn_error, u_j_fe_error, u_j_be_error = [0] * mt_num, [0] * mt_num, [0] * mt_num
+    deltat_list = [0] * mt_num
+
+    for mt in mt_values:
+        # Ensure mt is an integer
+        mt = int(mt)
+
+        # Set up the numerical environment variables
+        t = np.linspace(0, T, mt + 1)  # mesh points in space and time
+        deltat = t[1] - t[0]  # grid spacing in x and t
+
+        x_fe, u_j_fe = pde_solver(u_i, mx, mt, kappa, L, T, 0, 0, 'fe matrix vector')
+        x_be, u_j_be = pde_solver(u_i, mx, mt, kappa, L, T, 0, 0, 'be matrix vector')
+        x_cn, u_j_cn = pde_solver(u_i, mx, mt, kappa, L, T, 0, 0, 'crank nicholson')
+        u_j_exact = u_exact(x, T)
+
+        u_j_fe_error[mt_count] = sum(abs(u_j_fe - u_j_exact)) / len(u_j_exact)
+        u_j_be_error[mt_count] = sum(abs(u_j_be - u_j_exact)) / len(u_j_exact)
+        u_j_cn_error[mt_count] = sum(abs(u_j_cn - u_j_exact)) / len(u_j_exact)
+
+        deltat_list[mt_count] = deltat
+        mt_count += 1
+
+    plt.plot(deltat_list, u_j_cn_error, 'r-', label='Crank Nicholson')
+    plt.plot(deltat_list, u_j_fe_error, 'b-', label='Forward Euler')
+    plt.plot(deltat_list, u_j_be_error, 'g-', label='Backward Euler')
+    plt.legend()
+    plt.xlabel(''r'$\Delta t$'), plt.ylabel('Error in u approximation')
+    plt.show()
+
+
+def error_with_x(u_i, u_exact, mx_values):
+    """
+    Function which measures how the error of the methods changes as mt changes
+    :param u_i: Function which defines the prescribed initial temperature
+    :param u_exact: exact solution of u
+    :param mx_values: Values of mx
+    """
+    # Set problem parameters/functions
+    kappa = 1.0  # diffusion constant - how easily diffusion occurs
+    T, mt, L = 0.5, 50000, 1.0  # total time to solve for and number of spatial values, length of spatial domain
+
+    # Set up the numerical environment variables
+
+    mx_count, mx_num = 0, len(mx_values)
+
+    u_j_cn_error, u_j_fe_error, u_j_be_error = [0] * mx_num, [0] * mx_num, [0] * mx_num
+    deltax_list = [0] * mx_num
+
+    for mx in mx_values:
+        # Ensure mx is an integer
+        mx = int(mx)
+
+        # Set up the numerical environment variables
+        x = np.linspace(0, T, mx + 1)  # mesh points in space and time
+        deltax = x[1] - x[0]  # grid spacing in x and t
+
+        x_fe, u_j_fe = pde_solver(u_i, mx, mt, kappa, L, T, 0, 0, 'fe matrix vector')
+        x_be, u_j_be = pde_solver(u_i, mx, mt, kappa, L, T, 0, 0, 'be matrix vector')
+        x_cn, u_j_cn = pde_solver(u_i, mx, mt, kappa, L, T, 0, 0, 'crank nicholson')
+        u_j_exact = u_exact(x, T)
+
+        u_j_fe_error[mx_count] = sum(abs(u_j_fe - u_j_exact)) / len(u_j_exact)
+        u_j_be_error[mx_count] = sum(abs(u_j_be - u_j_exact)) / len(u_j_exact)
+        u_j_cn_error[mx_count] = sum(abs(u_j_cn - u_j_exact)) / len(u_j_exact)
+
+        deltax_list[mx_count] = deltax
+        mx_count += 1
+
+    plt.plot(deltax_list, u_j_cn_error, 'r-', label='Crank Nicholson')
+    plt.plot(deltax_list, u_j_fe_error, 'b-', label='Forward Euler')
+    plt.plot(deltax_list, u_j_be_error, 'g-', label='Backward Euler')
+    plt.legend()
+    plt.xlabel(''r'$\Delta x$'), plt.ylabel('Error in u approximation')
+    plt.show()
+
+
 def main():
+
     def u_i(x, p=1):
         # initial temperature distribution
         y = (np.sin(pi * x / L)) ** p
@@ -282,8 +401,7 @@ def main():
     # Set problem parameters/functions
     kappa = 1.0  # diffusion constant - how easily diffusion occurs
     L = 1.0  # length of spatial domain
-    T, mt = 0.5, 1000  # total time to solve for and number of time values
-    mx = 10
+    T, mt, mx = 0.5, 1000, 10  # total time to solve for and number of time and spatial values
 
     x, u_j = pde_solver(u_i, mx, mt, 1.0, L, T, 0, 0, 'forward_euler')
 
@@ -291,17 +409,21 @@ def main():
 
     x_be, u_j_be = pde_solver(u_i, mx, mt, 1.0, L, T, 0, 0, 'be matrix vector')
 
+    x_cn, u_j_cn = pde_solver(u_i, mx, mt, 1.0, L, T, 0, 0, 'crank nicholson')
+
+    mt_vals, mx_vals = np.linspace(65, 115, 50), np.linspace(10, 200, 40)
+    error_with_time(u_i, u_exact, mt_vals)
+    error_with_x(u_i, u_exact, mx_vals)
+
     # Check that forward euler and the matrix vector form return the same answer
     print('Do Forward Euler and matrix vector form return the same u values : ' + str(np.allclose(u_j, u_j_fe)))
 
     xx = np.linspace(0, L, 250)
 
     # Plot the final result and exact solution
-    plt.plot(x, u_j_be, 'go', label='Backward Euler')
-    plt.plot(x, u_j_fe, 'ro', label='Forward Euler')
-    plt.plot(xx, u_exact(xx, T), 'b-', label='exact')
-    plt.xlabel('x')
-    plt.ylabel('u(x,' + str(T) + ')')
+    plt.plot(x, u_j_cn, 'bo', label='crank nicholson'), plt.plot(x, u_j_be, 'go', label='Backward Euler')
+    plt.plot(x, u_j_fe, 'ro', label='Forward Euler'), plt.plot(xx, u_exact(xx, T), 'b-', label='exact')
+    plt.xlabel('x'), plt.ylabel('u(x,' + str(T) + ')')
     plt.legend(loc='upper right')
     plt.show()
 
