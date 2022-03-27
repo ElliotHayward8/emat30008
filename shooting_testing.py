@@ -4,6 +4,7 @@ from scipy.optimize import fsolve
 from scipy.integrate import odeint
 from ODE_Solvers import euler_step, rk4_step, solve_ode, solve_to
 from collections import Counter
+from math import pi
 from numerical_shooting import find_shooting_orbit
 
 # A program which tests the find_shooting_orbit function
@@ -167,12 +168,12 @@ def output_tests():
     normal_hopf_u0 = np.array([1.3, 0, 6.1])
 
     normal_hopf_orbit = find_shooting_orbit(normal_hopf, normal_hopf_u0, pc_normal_hopf, [1, -1])
-    print(normal_hopf_orbit)
     shooting_u, T = normal_hopf_orbit[:-1], normal_hopf_orbit[-1]
     true_u = true_hopf_normal(0, T, [1, -1])
+    true_T = 2 * pi  # Define the time period of the hopf bifurcation (2pi / 1 = 2pi)
 
     # test if the solution from shooting is close to the true solution
-    if np.allclose(true_u, shooting_u):
+    if np.allclose(true_u, shooting_u) and np.isclose(T, true_T):
         print('Supercritical-Hopf bifurcation output test : Test Passed')
     else:
         passed = False
