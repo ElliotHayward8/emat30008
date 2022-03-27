@@ -137,8 +137,43 @@ def find_shooting_orbit(f, u0T, phase_cond, *pars):
     else:
         raise TypeError("fsolve was unable to converge")
 
+
+def plot_isolated_orbit(f, shooting_orbit, ODEs, *pars):
+    """
+    Function which finds the starting coordinates and time period of a periodic orbit within an ODE
+    :param f: ODE that the shooting function has been performed on
+    :param shooting_orbit: Initial condition and time period found
+    :param ODEs: A boolean variable which defines whether it is a singular or system of ODE(s) (0 = singular)
+    :param pars: Array of any additional parameters
+    """
+    u0, T, deltatmax = shooting_orbit[:-1], shooting_orbit[-1], 0.01
+    t_eval = np.linspace(0, T, int(T * 2))
+
+    iso_orbit = solve_ode(f, u0, t_eval, deltatmax, 'rk4', ODEs, *pars)
+
+    if len(iso_orbit) < 5:
+        if len(iso_orbit) == 1:
+            plt.plot(t_eval, iso_orbit[0], 'r-', label='x')
+        elif len(iso_orbit) == 2:
+            plt.plot(t_eval, iso_orbit[0], 'r-', label='x')
+            plt.plot(t_eval, iso_orbit[1], 'g-', label='y')
+        elif len(iso_orbit) == 3:
+            plt.plot(t_eval, iso_orbit[0], 'r-', label='x')
+            plt.plot(t_eval, iso_orbit[1], 'g-', label='y')
+            plt.plot(t_eval, iso_orbit[2], 'b-', label='z')
+        elif len(iso_orbit) == 4:
+            plt.plot(t_eval, iso_orbit[0], 'r-', label='x')
+            plt.plot(t_eval, iso_orbit[1], 'g-', label='y')
+            plt.plot(t_eval, iso_orbit[2], 'b-', label='z')
+            plt.plot(t_eval, iso_orbit[3], 'y-', label='w')
+    else:
+        raise TypeError('This function only plots orbits for ODEs with 4 or less variables')
+
+    plt.legend(), plt.xlabel('Time'), plt.ylabel('Variable value')
+    plt.show()
+
 def main():
-    t_eval, deltat_max, pars1 = np.linspace(0, 1000, 1000), 0.01, [1, 0.2, 0.1]
+    t_eval, deltat_max, pars1 = np.linspace(0, 100, 100), 0.01, [1, 0.2, 0.1]
 
     pred_prey_u0T = np.array([0.58, 0.285, 21])
 
@@ -149,7 +184,7 @@ def main():
 
     shooting_orbit = find_shooting_orbit(pred_prey_eq, pred_prey_u0T, pred_prey_phase_cond, pars1)
 
-    print(shooting_orbit)
+    plot_isolated_orbit(pred_prey_eq, shooting_orbit, 1, pars1)
 
     # plt.plot(shooting_orbit[0], shooting_orbit[1], 'go', label='Shooting Orbit')
     # plt.plot(sol_pred_prey[0], sol_pred_prey[1], 'b', label='Solution')

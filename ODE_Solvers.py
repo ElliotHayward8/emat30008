@@ -100,11 +100,10 @@ def solve_ode(f, x0, t_eval, deltat_max, solver, ODEs, *pars):
     :param t_eval: Array of time values to solve at
     :param deltat_max: Maximum step size (maximum value of h)
     :param solver: Which solver to use ('euler'/'rk4')
-    :param ODEs: True/False defining whether it is a system of ODEs or not
+    :param ODEs: Boolean variable
     :param pars: Array of any additional parameters
     :return: Returns an array of x values at each time value in t_eval
     """
-    # print('start solve_ode ' + str(pars))
     # Check the values of x0, t_eval and deltat_max
     array_int_or_float(x0, 'x0 (initial condition)')
     array_int_or_float(t_eval, 't_eval')

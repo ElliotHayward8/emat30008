@@ -169,7 +169,7 @@ def output_tests():
 
     normal_hopf_orbit = find_shooting_orbit(normal_hopf, normal_hopf_u0, pc_normal_hopf, [1, -1])
     shooting_u, T = normal_hopf_orbit[:-1], normal_hopf_orbit[-1]
-    true_u = true_hopf_normal(0, T, [1, -1])
+    true_u = true_hopf_normal(T, 0, [1, -1])
     true_T = 2 * pi  # Define the time period of the hopf bifurcation (2pi / 1 = 2pi)
 
     # test if the solution from shooting is close to the true solution
@@ -218,14 +218,15 @@ def output_tests():
         return np.array([u1, u2, u3])
 
     # Values chosen which are close to real solution
-    hopf_3d_u0 = np.array([1.3, 0, 1, 6.1])
+    hopf_3d_u0 = np.array([1.3, 0, 0.1, 6.1])
 
     hopf_3d_orbit = find_shooting_orbit(hopf_3d, hopf_3d_u0, pc_hopf_3d, [1, -1])
     shooting_u, T = hopf_3d_orbit[:-1], hopf_3d_orbit[-1]
 
-    true_u = true_hopf_3d(10 * T, T, [1, -1])
+    true_u = true_hopf_3d(T, 4 * T, [1, -1])
+    true_T = 2 * pi  # Define the time period of the hopf bifurcation (2pi / 1 = 2pi)
 
-    if np.allclose(true_u, shooting_u):
+    if np.allclose(true_u, shooting_u) and np.isclose(true_T, T):
         print('3D Hopf bifurcation : Test Passed')
     else:
         passed = False
@@ -251,4 +252,4 @@ def main():
 
 
 if __name__ == '__main__':
-       main()
+    main()
