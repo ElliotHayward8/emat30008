@@ -65,7 +65,7 @@ def rk4_step(f, x0, t0, h, *pars):
     return x1, t1
 
 
-def solve_to(f, x0, t0, t1, deltat_max, solver, *pars):
+def solve_to(f, x0, t0, t1, deltat_max, solver='rk4', *pars):
     """
     Solves the ODE (f) between t0 and t1 with IC = x0
     :param f: Function defining an ODE or system of ODEs
@@ -210,32 +210,36 @@ def func2_comparison_graph(deltat_max, time_periods, x0, total_time, *pars):
     sol = true_func2(t)
     sol_x, sol_y = sol[0], sol[1]
 
-    plt.plot(euler_sol_x, euler_sol_y, label='Euler method')
-    plt.plot(rk4_sol_x, rk4_sol_y, label='RK4 method')
-    plt.plot(sol_x, sol_y, 'r', label='True value')
-    plt.legend(), plt.xlabel('x'), plt.ylabel('y')
-    plt.show()
+    # making subplots
+    fig, ax = plt.subplots(2)
 
-    plt.subplot(2, 1, 1)
-    plt.plot(t, euler_sol_y, label='Euler method')
-    plt.plot(t, rk4_sol_y, label='RK4 method')
-    plt.plot(t, sol_y, label='True value')
-    plt.legend(), plt.xlabel('t'), plt.ylabel('y')
+    ax[0].set_title('Graph of y values')
+    ax[0].plot(t, euler_sol_y, label='Euler method')
+    ax[0].plot(t, rk4_sol_y, label='RK4 method')
+    ax[0].plot(t, sol_y, label='True value')
+    ax[0].legend(), ax[0].set_xlabel('t'), ax[0].set_ylabel('y')
 
-    plt.subplot(2, 1, 2)
-    plt.plot(t, euler_sol_x, label='Euler method')
-    plt.plot(t, rk4_sol_x, label='RK4 method')
-    plt.plot(t, sol_x, label='True value')
-    plt.legend(), plt.xlabel('t'), plt.ylabel('x')
+    ax[1].set_title('Graph of x values')
+    ax[1].plot(t, euler_sol_x, label='Euler method')
+    ax[1].plot(t, rk4_sol_x, label='RK4 method')
+    ax[1].plot(t, sol_x, label='True value')
+    ax[1].legend(), ax[1].set_xlabel('t'), ax[1].set_ylabel('x')
+
+    fig.tight_layout()
     plt.show()
 
 
 def main():
+    # Plot the error graph for both the euler and RK4 method as the value of h, the step-size, changes
     func1_error_graph(func1, 5, 1, 0, 1)
 
+    # Measure the time taken to run both the euler and RK4 methods 10,000 times to compare how long each method
+    # takes, when they have the same value for their error
     time_methods(func1, 1, 0, 1)
 
-    func2_comparison_graph(0.1, 1000, [1, 1], 50)
+    # Graphs to compare the solutions generated from both the euler and RK4 method with the true solution of
+    # func2
+    func2_comparison_graph(0.25, 1000, [1, 1], 50)
 
 
 if __name__ == '__main__':
