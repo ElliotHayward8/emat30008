@@ -13,7 +13,7 @@ def array_int_or_float(par, par_name):
     is_not_float = np.array(par).dtype != np.float_
     if is_not_int and is_not_float:
         raise TypeError(f"'{par_name}' : '{par}' contains invalid types. "
-                        f"{par_name} should contain only integers and/or floats.")
+                        f"{par_name} should contain only integers and floats.")
 
 
 def ode_checker(f, x0, t_eval, *pars):
@@ -28,6 +28,9 @@ def ode_checker(f, x0, t_eval, *pars):
     """
     if callable(f):
 
+        if pars != ():
+            array_int_or_float(pars, 'pars')
+
         # Test the output of the ODE (f) is the same as x0
         test_t = t_eval[0]
         test_x1 = f(x0, test_t, *pars)
@@ -40,4 +43,3 @@ def ode_checker(f, x0, t_eval, *pars):
 
     else:
         raise TypeError(f"f: '{f}' must be a callable function.")
-

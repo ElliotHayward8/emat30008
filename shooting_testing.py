@@ -17,7 +17,8 @@ def input_tests():
 
     failed_input_tests, passed = [], True
     good_pars = [1, 0.1, 0.16]
-    good_u0T = np.array([0.5, 0.5, 15])
+    good_pars, too_small_pars, wrong_type_pars = [1, 0.1, 0.16], [1, 0.1], 'string'
+    good_u0T, wrong_size_u0T, wrong_type_u0T = np.array([0.5, 0.5, 15]), np.array([0.5, 0.5]), 'string'
 
     def right_pred_prey_eq(u0, t, pars):
         """
@@ -90,7 +91,7 @@ def input_tests():
     except ValueError:
         print('ODE with wrongly sized output test : Test Passed')
 
-    # test if the phase condition isn't a function
+    # test for if the phase condition isn't a function
     try:
         find_shooting_orbit(right_pred_prey_eq, good_u0T, 'a string not a function', good_pars)
         print('Phase condition is not a function test : Test Failed')
@@ -116,6 +117,42 @@ def input_tests():
         passed = False
     except TypeError:
         print('Phase condition with output of the wrong type test : Test Passed')
+
+    # test the function if u0T is of the wrong type
+    try:
+        find_shooting_orbit(right_pred_prey_eq, wrong_type_u0T, right_pred_prey_phase_cond, good_pars)
+        print('u0T of the wrong type test : Test Failed')
+        failed_input_tests.append('u0T of the wrong type test')
+        passed = False
+    except TypeError:
+        print('u0T of the wrong type test : Test Passed')
+
+    # test the function if u0T is wrongly sized
+    try:
+        find_shooting_orbit(right_pred_prey_eq, wrong_size_u0T, right_pred_prey_phase_cond, good_pars)
+        print('u0T wrongly sized test : Test Failed')
+        failed_input_tests.append('u0T wrongly sized test')
+        passed = False
+    except (IndexError, ValueError):
+        print('u0T wrongly sized test : Test Passed')
+
+    # test the function if pars is too small
+    try:
+        find_shooting_orbit(right_pred_prey_eq, good_u0T, right_pred_prey_phase_cond, too_small_pars)
+        print('pars wrongly sized test : Test Failed')
+        failed_input_tests.append('pars wrongly sized test')
+        passed = False
+    except (IndexError, ValueError):
+        print('pars wrongly sized test : Test Passed')
+
+    # test the function if pars is of the wrong type
+    try:
+        find_shooting_orbit(right_pred_prey_eq, good_u0T, right_pred_prey_phase_cond, wrong_type_pars)
+        print('pars of the wrong type test : Test Failed')
+        failed_input_tests.append('pars of the wrong type test')
+        passed = False
+    except TypeError:
+        print('pars of the wrong type test : Test Passed')
 
     # Print the results of all the input tests
     if passed:
