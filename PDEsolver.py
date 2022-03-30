@@ -4,10 +4,12 @@
 #   u=0 at x=0,L, t>0
 # and prescribed initial temperature
 #   u=u_I(x) 0<=x<=L,t=0
+import warnings
 
 import numpy as np
 import matplotlib.pyplot as plt
 from math import pi
+import scipy
 from scipy.sparse import diags
 from scipy.sparse.linalg import spsolve
 
@@ -182,6 +184,7 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0_func, bc_L_func, b
     :param T: Total time to solve for
     :param bc_0_func: A function which dictates the boundary condition at x = 0
     :param bc_L_func: A function which dictates the boundary condition at x = L
+    :param bc_type: The type of boundary conditions
     :return: Solution of PDE at time T
     """
 
@@ -210,8 +213,8 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0_func, bc_L_func, b
         for j in range(0, mt):
             # Forward Euler time step at inner mesh points
             # PDE discretised at position x[i], time t[j]
-            bc_0 = bc_0_func(t[j])
-            bc_L = bc_L_func(t[j])
+            bc_0 = bc_0_func(0, t[j])
+            bc_L = bc_L_func(L, t[j])
 
             zero_vec = np.zeros(mx - 3)
             dir_bc_vec = np.append(zero_vec, bc_L)
@@ -233,19 +236,38 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0_func, bc_L_func, b
         for j in range(0, mt):
             # Forward Euler time step at inner mesh points
             # PDE discretised at position x[i], time t[j]
-            bc_0 = bc_0_func(t[j])
-            bc_L = bc_L_func(t[j])
+            bc_0 = bc_0_func(0, t[j])
+            bc_L = bc_L_func(L, t[j])
 
             zero_vec = np.zeros(mx - 1)
             neu_bc_vec = np.append(zero_vec, bc_L)
-            neu_bc_vec = np.insert(neu_bc_vec, 0, bc_0, axis=0)
+            neu_bc_vec = np.insert(neu_bc_vec, 0, -bc_0, axis=0)
 
             u_j = a_fe.dot(np.vstack(u_j)) + (2 * lmbda * deltax) * np.vstack(neu_bc_vec)
+
+    elif bc_type == 'periodic':
+
+        # create the A_FE tridiagonal matrix
+        a_fe = create_tri_diag_mat(mx, lmbda, 1 - (2 * lmbda), lmbda)
+
+        a_fe[0, -1] = lmbda
+        a_fe[-1, 0] = lmbda
+
+        for j in range(0, mt):
+            # Forward Euler time step at inner mesh points
+            # PDE discretised at position x[i], time t[j]
+            bc_0 = bc_0_func(0, t[j])
+            bc_L = bc_L_func(L, t[j])
+
+            u_j = a_fe.dot(np.vstack(u_j[:-1]))
+
+            # Set u_j_L = u_j_0
+            u_j = np.append(u_j, u_j[0])
 
     return x, u_j
 
 
-def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type, method='fe matrix vector'):
+def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type='dirichlet', method='fe matrix vector'):
     """
     Function which solves a PDE using the inputted method
     :param u_i_func: Function which defines the prescribed initial temperature
@@ -262,18 +284,21 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type, method='fe ma
     :return: Solution of PDE at time T
     """
 
+    # cancel SciPy warnings about changing sparse matrices
+    warnings.simplefilter("ignore", category=scipy.sparse.SparseEfficiencyWarning)
+
     # Check that the boundary conditions given are functions
     if callable(bc_0):
         # Check that the boundary condition functions return a float or integer
-        if not isinstance(bc_0(0), (int, np.int_, float, np.float_)):
-            raise TypeError(f"bc_0(0): {bc_0(0)} is not an integer or float")
+        if not isinstance(bc_0(0, 0), (int, np.int_, float, np.float_)):
+            raise TypeError(f"bc_0(0): {bc_0(0, 0)} is not an integer or float")
 
     else:
         raise TypeError(f"bc_0: '{bc_0}' must be a callable function.")
 
     if callable(bc_L):
-        if not isinstance(bc_L(0), (int, np.int_, float, np.float_)):
-            raise TypeError(f"bc_L(0): {bc_L(0)} is not an integer or float")
+        if not isinstance(bc_L(L, 0), (int, np.int_, float, np.float_)):
+            raise TypeError(f"bc_L(0): {bc_L(L, 0)} is not an integer or float")
 
     else:
         raise TypeError(f"bc_L: '{bc_L}' must be a callable function.")
@@ -298,13 +323,13 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type, method='fe ma
         if not isinstance(u_i_L, (int, np.int_, float, np.float_)):
             raise TypeError(f"u_i_L: {u_i_L} must be a float or integer")
         if method == 'forward_euler':
-            x, u_j = forward_euler(u_i_func, mx, mt, kappa, L, T, bc_0(0), bc_L(0))
+            x, u_j = forward_euler(u_i_func, mx, mt, kappa, L, T, bc_0(0, 0), bc_L(L, 0))
         elif method == 'fe matrix vector':
             x, u_j = fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type)
         elif method == 'be matrix vector':
-            x, u_j = be_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0(0), bc_L(0))
+            x, u_j = be_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0(0, 0), bc_L(L, 0))
         elif method == 'crank nicholson':
-            x, u_j = c_n(u_i_func, mx, mt, kappa, L, T, bc_0(0), bc_L(0))
+            x, u_j = c_n(u_i_func, mx, mt, kappa, L, T, bc_0(0, 0), bc_L(L, 0))
 
         else:
             raise NameError(f"method : {method} isn't present (must select 'forward_euler', "
@@ -332,10 +357,10 @@ def error_with_time(u_i, u_exact, mt_values):
     u_j_cn_error, u_j_fe_error, u_j_be_error = [0] * mt_num, [0] * mt_num, [0] * mt_num
     deltat_list = [0] * mt_num
 
-    def bc_0(t):
+    def bc_0(x, t):
         return 0
 
-    def bc_L(t):
+    def bc_L(x, t):
         return 0
 
     for mt in mt_values:
@@ -384,10 +409,10 @@ def error_with_x(u_i, u_exact, mx_values):
     u_j_cn_error, u_j_fe_error, u_j_be_error = [0] * mx_num, [0] * mx_num, [0] * mx_num
     deltax_list = [0] * mx_num
 
-    def bc_0(t):
+    def bc_0(x, t):
         return 0
 
-    def bc_L(t):
+    def bc_L(x, t):
         return 0
 
     for mx in mx_values:
@@ -430,10 +455,10 @@ def main():
         y = np.exp(-kappa * (pi ** 2 / L ** 2) * t) * np.sin(pi * x / L)
         return y
 
-    def bc_is_0(t):
+    def bc_is_0(x, t):
         return 0
 
-    def bc_is_1(t):
+    def bc_is_1(x, t):
         return 1
 
     # Set problem parameters/functions
@@ -474,6 +499,7 @@ def main():
     # plt.legend(loc='upper right')
     # plt.show()
 
+    x_fe_pe, u_j_fe_pe = pde_solver(u_i, mx, mt, 1.0, L, T, bc_is_0, bc_is_0, 'periodic', 'fe matrix vector')
 
 if __name__ == '__main__':
     main()
