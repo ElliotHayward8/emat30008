@@ -132,6 +132,30 @@ def output_tests():
         failed_output_tests.append('Forward Euler and FE matrix vector same output test')
         print('Forward Euler and FE matrix vector same output test : Test Failed')
 
+    # Test to see if the function works for Neumann boundary conditions
+    L, kappa, T = 1, 0.25, 5
+    mx, mt = 400, 400001
+
+    def u_i_neu(x):
+        # initial temperature distribution
+        y = 100 * x * (1 - x)
+        return y
+
+    def u_neu_exact(x, t):
+        y = x - x + (50 / 3)
+        return y
+
+    x_fe_pe, u_j_fe_pe = pde_solver(u_i_neu, mx, mt, kappa, L, T, bc_is_0, bc_is_0, 'neumann', 'fe matrix vector')
+
+    true_u_neu = u_neu_exact(x_fe_pe, 5)
+
+    if np.allclose(true_u_neu, u_j_fe_pe):
+        print('Forward Euler Neumann BC test : Test Passed')
+    else:
+        passed = False
+        failed_output_tests.append('Forward Euler Neumann BC test test')
+        print('Forward Euler Neumann BC test test : Test Failed')
+
     if passed:
         print('\n---------------------------------------\n')
         print('ALL PDE SOLVER OUTPUT TESTS PASSED')

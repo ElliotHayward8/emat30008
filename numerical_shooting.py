@@ -63,9 +63,9 @@ def compare_b_values(b1, b2):
 
 def shooting(f):
     """
-    Construct the shooting root-finding problem for a given ODE
+    Construct the function which returns the values to be set to 0 for the shooting root-finding problem
     :param f: ODE to use the shooting root-finding method on
-    :return: Returns the function G which can be solved to find the root which will solve the shooting problem
+    :return: Returns the function G which can be solved to find the root which solves the shooting problem
     """
 
     def G(u0T, phase_con, *pars):
@@ -74,7 +74,7 @@ def shooting(f):
         :param u0T: Array which contains the starting guess of the coordinates and the time period
         :param phase_con: Function of the phase condition
         :param pars: Array of any additional parameters
-        :return:
+        :return: returns an array of the value of the phase condition and the difference between the
         """
 
         def F(u0, T):

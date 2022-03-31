@@ -173,7 +173,7 @@ def c_n(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     return x, u_j
 
 
-def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0_func, bc_L_func, bc_type):
+def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0_func, bc_L_func, bc_type, source):
     """
     A function which performs the forward Euler scheme in matrix/vector form on the heat equation
     :param u_i_func: Function which defines the prescribed initial temperature
@@ -185,6 +185,7 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0_func, bc_L_func, b
     :param bc_0_func: A function which dictates the boundary condition at x = 0
     :param bc_L_func: A function which dictates the boundary condition at x = L
     :param bc_type: The type of boundary conditions
+    :param source: Defines any source term within the PDE, if there is no source term it is None
     :return: Solution of PDE at time T
     """
 
@@ -216,14 +217,26 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0_func, bc_L_func, b
             bc_0 = bc_0_func(0, t[j])
             bc_L = bc_L_func(L, t[j])
 
+            # Define the RHS function
+            if source is not None:
+                F_x = np.vstack(source(x[1:-1], t[j]))
+            else:
+                F_x = np.vstack(0 * x[1:-1])
+
             zero_vec = np.zeros(mx - 3)
             dir_bc_vec = np.append(zero_vec, bc_L)
             dir_bc_vec = np.insert(dir_bc_vec, 0, bc_0, axis=0)
 
-            u_j = a_fe.dot(np.vstack(u_j[1:-1])) + lmbda * np.vstack(dir_bc_vec)
+            u_j = a_fe.dot(np.vstack(u_j[1:-1])) + (lmbda * np.vstack(dir_bc_vec)) + (deltat * F_x)
             # Boundary conditions
             u_j = np.append(u_j, bc_L)
             u_j = np.insert(u_j, 0, bc_0, axis=0)
+
+            # Define the RHS function
+            if source is not None:
+                F_x = np.vstack(source(x[1:-1], t[j]))
+            else:
+                F_x = np.vstack(0 * x[1:-1])
 
     elif bc_type == 'neumann':
 
@@ -239,11 +252,17 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0_func, bc_L_func, b
             bc_0 = bc_0_func(0, t[j])
             bc_L = bc_L_func(L, t[j])
 
+            # Define the RHS function
+            if source is not None:
+                F_x = np.vstack(source(x, t[j]))
+            else:
+                F_x = np.vstack(0 * x)
+
             zero_vec = np.zeros(mx - 1)
             neu_bc_vec = np.append(zero_vec, bc_L)
             neu_bc_vec = np.insert(neu_bc_vec, 0, -bc_0, axis=0)
 
-            u_j = a_fe.dot(np.vstack(u_j)) + (2 * lmbda * deltax) * np.vstack(neu_bc_vec)
+            u_j = a_fe.dot(np.vstack(u_j)) + (2 * lmbda * deltax) * np.vstack(neu_bc_vec) + (deltat * F_x)
 
     elif bc_type == 'periodic':
 
@@ -259,7 +278,12 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0_func, bc_L_func, b
             bc_0 = bc_0_func(0, t[j])
             bc_L = bc_L_func(L, t[j])
 
-            u_j = a_fe.dot(np.vstack(u_j[:-1]))
+            if source is not None:
+                F_x = np.vstack(source(x[:-1], t[j]))
+            else:
+                F_x = np.vstack(0 * x[:-1])
+
+            u_j = a_fe.dot(np.vstack(u_j[:-1])) + (deltat * F_x)
 
             # Set u_j_L = u_j_0
             u_j = np.append(u_j, u_j[0])
@@ -267,7 +291,7 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0_func, bc_L_func, b
     return x, u_j
 
 
-def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type='dirichlet', method='fe matrix vector'):
+def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type='dirichlet', method='fe matrix vector', source=None):
     """
     Function which solves a PDE using the inputted method
     :param u_i_func: Function which defines the prescribed initial temperature
@@ -281,6 +305,7 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type='dirichlet', m
     :param bc_type: The type of boundary conditions (only the fe matrix vector form method can
                     handle non-zero boundary conditions)
     :param method: Chosen method to use to solve the PDE
+    :param source: Defines any source term within the PDE, if there is no source term it is None
     :return: Solution of PDE at time T
     """
 
@@ -317,15 +342,25 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type='dirichlet', m
     if not isinstance(kappa, (int, np.int_, float, np.float_)):
         raise TypeError(f"kappa: {kappa} is not an integer or float")
 
+    # Check that source is a callable function that is a an integer or float when called with an x and t value
+    if source is not None:
+        if callable(source):
+            if not isinstance(source(0, 0), (int, np.int_, float, np.float_)):
+                raise TypeError(f"source: {source(0, 0)} must be a float or intger")
+        else:
+            raise TypeError(f"source: {source} is not a callable function")
+
     if callable(u_i_func):
         # Check the output of u_i_func is an integer or float
         u_i_L = u_i_func(L)
         if not isinstance(u_i_L, (int, np.int_, float, np.float_)):
             raise TypeError(f"u_i_L: {u_i_L} must be a float or integer")
         if method == 'forward_euler':
+            if bc_type != 'dirichlet':
+                raise TypeError('forward_euler method only works for dirichlet boundary conditions')
             x, u_j = forward_euler(u_i_func, mx, mt, kappa, L, T, bc_0(0, 0), bc_L(L, 0))
         elif method == 'fe matrix vector':
-            x, u_j = fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type)
+            x, u_j = fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type, source)
         elif method == 'be matrix vector':
             x, u_j = be_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0(0, 0), bc_L(L, 0))
         elif method == 'crank nicholson':
@@ -445,15 +480,23 @@ def error_with_x(u_i, u_exact, mx_values):
 
 def main():
 
+    """
+    First example: Solve a simple PDE using all 3 methods
+    """
+
     def u_i(x, p=1):
-        # initial temperature distribution
+        # initial temperature distribution to use for all 3 methods
         y = (np.sin(pi * x / L)) ** p
         return y
 
     def u_exact(x, t):
-        # the exact solution
+        # the exact solution of the first example
         y = np.exp(-kappa * (pi ** 2 / L ** 2) * t) * np.sin(pi * x / L)
         return y
+
+    """
+    Define some boundary conditions, here we will use u(0, t) = u(L, t) = 0 for the simple example
+    """
 
     def bc_is_0(x, t):
         return 0
@@ -461,12 +504,13 @@ def main():
     def bc_is_1(x, t):
         return 1
 
-    # Set problem parameters/functions
-    kappa = 1.0  # diffusion constant - how easily diffusion occurs
-    L = 1.0  # length of spatial domain
-    T, mt, mx = 0.5, 1000, 10  # total time to solve for and number of time and spatial values
+    """
+    Define the problem parameters for the simple PDE used in example 1
+    """
 
-    x, u_j = pde_solver(u_i, mx, mt, 1.0, L, T, bc_is_0, bc_is_0, 'dirichlet', 'forward_euler')
+    kappa = 1.0
+    L = 1.0
+    T, mt, mx = 0.5, 1000, 10
 
     x_fe, u_j_fe = pde_solver(u_i, mx, mt, 1.0, L, T, bc_is_0, bc_is_0, 'dirichlet', 'fe matrix vector')
 
@@ -479,15 +523,16 @@ def main():
     # error_with_x(u_i, u_exact, mx_vals)
 
     # Check that forward euler and the matrix vector form return the same answer
+    x, u_j = pde_solver(u_i, mx, mt, 1.0, L, T, bc_is_0, bc_is_0, 'dirichlet', 'forward_euler')
+
     print('Do Forward Euler and matrix vector form return the same u values : ' + str(np.allclose(u_j, u_j_fe)))
 
     xx = np.linspace(0, L, 250)
 
     # Plot the final result and exact solution
-    # plt.plot(x, u_j_cn, 'bo', label='crank nicholson')
-    # plt.plot(x, u_j_be, 'go', label='Backward Euler')
-    # plt.plot(x, u_j, 'go', label='FE step wise')
-    # plt.plot(x, u_j_fe, 'ro', label='Forward Euler')
+    plt.plot(x, u_j_cn, 'go', label='crank nicholson')
+    plt.plot(x, u_j_be, 'mo', label='Backward Euler')
+    plt.plot(x, u_j_fe, 'ro', label='Forward Euler')
     plt.plot(xx, u_exact(xx, T), 'b-', label='exact')
     plt.xlabel('x'), plt.ylabel('u(x,' + str(T) + ')')
     plt.legend(loc='upper right')
@@ -499,7 +544,28 @@ def main():
     # plt.legend(loc='upper right')
     # plt.show()
 
-    x_fe_pe, u_j_fe_pe = pde_solver(u_i, mx, mt, 1.0, L, T, bc_is_0, bc_is_0, 'periodic', 'fe matrix vector')
+    # Test to see if the function works for Neumann boundary conditions
+    L, kappa, T = 1, 0.25, 5
+    mx, mt = 400, 400001
+    xx = np.linspace(0, L, 10000)
+
+    def u_i_neu(x):
+        # initial temperature distribution
+        y = 100 * x * (1 - x)
+        return y
+
+    def u_neu_exact(x, t):
+        y = x - x + (50 / 3)
+        return y
+
+    x_fe_pe, u_j_fe_pe = pde_solver(u_i_neu, mx, mt, kappa, L, T, bc_is_0, bc_is_0, 'neumann', 'fe matrix vector')
+
+    # print(sum(u_i_neu(xx) / len(xx)))
+    true_u_neu = u_neu_exact(x_fe_pe, 5)
+
+    # Check that the Neumann boundary conditions work correctly
+    print('Is the Forward Euler matrix vector form with Neumann BC accurate : ' + str(np.allclose(true_u_neu, u_j_fe_pe)))
+
 
 if __name__ == '__main__':
     main()

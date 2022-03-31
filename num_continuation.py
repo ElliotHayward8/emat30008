@@ -86,7 +86,7 @@ def nat_par_continuation(f, u0_guess, pars0, max_par, vary_par, max_steps=100, d
 
     # if a phase condition is required pass it into the pars so that it can be passed into the solver
     if phase_cond != 'none':
-        initial_pars0 = (pars0, phase_cond)
+        initial_pars0 = (phase_cond, pars0)
     else:
         initial_pars0 = pars0
 
