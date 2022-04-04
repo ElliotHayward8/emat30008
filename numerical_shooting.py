@@ -7,7 +7,6 @@ from ODE_Solvers import euler_step, rk4_step, solve_ode, solve_to
 from value_checks import ode_checker, array_int_or_float
 
 
-# predator prey equation
 def pred_prey_eq(X, t, pars):
     """
     A function which defines the predator prey equations
@@ -85,13 +84,14 @@ def shooting(f):
             :return: Returns the solution of the ODE at time T using the rk4 method
             """
             t_eval = np.linspace(0, T, 1000)
-            # print('F ' + str(pars))
             sol = solve_ode(f, u0, t_eval, 0.01, 'rk4', True, *pars)
             return sol[:, -1]
 
         T, u0 = u0T[-1], u0T[:-1]
-
-        # construct an array of the initial guess minus the solution alongside the phase condition
+        """
+        construct an array of the initial guess minus the solution alongside the phase condition this is then to be 
+        minimised using a solver to find where these values are 0 in order to isolate a periodic orbit
+        """
         g = np.append(u0 - F(u0, T), phase_con(u0, *pars))
         return g
     return G
@@ -106,6 +106,7 @@ def find_shooting_orbit(f, u0T, phase_cond, *pars):
     :param pars: Array of any additional parameters
     :return: Returns the starting coordinates and time period of the ODE
     """
+
     # Check the values of u0T
     array_int_or_float(u0T, 'u0T')
 
@@ -114,7 +115,6 @@ def find_shooting_orbit(f, u0T, phase_cond, *pars):
 
     # Check the inputted phase condition is formatted correctly
     if callable(phase_cond):
-
         pc_val = phase_cond(u0T[:-1], *pars)
 
         # check the phase condition returns an int or float
@@ -166,29 +166,48 @@ def plot_isolated_orbit(f, shooting_orbit, ODEs, *pars):
     else:
         raise TypeError('This function only plots orbits for ODEs with 4 or less variables')
 
-    plt.legend(), plt.xlabel('Time'), plt.ylabel('Variable value')
+    plt.title('Isolated Periodic Orbit')
+    plt.legend(), plt.xlabel('Time'), plt.ylabel('Value of variables')
     plt.show()
 
-def main():
-    t_eval, deltat_max, pars1 = np.linspace(0, 100, 100), 0.01, [1, 0.2, 0.1]
 
+def main():
+    # Define the required values to solve the ODE using solve_ode
+    t_eval, deltat_max, pars1 = np.linspace(0, 50, 100), 0.01, [1, 0.2, 0.1]
+
+    """
+    Define a close initial guess of the solution of the shooting problem for the predator-prey equations in the form 
+    (x,y,T) where T is the time period of an orbit
+    """
     pred_prey_u0T = np.array([0.58, 0.285, 21])
 
     sol_pred_prey = solve_ode(pred_prey_eq, pred_prey_u0T[:-1], t_eval, deltat_max, 'rk4', 1, pars1)
 
-    # one value > 0.26 and one value < 0.26 are chosen to observe how the behaviour changes either side of 0.26
-    # compare_b_values(0.1, 0.5)
+    """
+    Compare how the predator prey equations change depending on how the value of b changes, when a = 1 and d = 0.1,
+    here the behaviour is compared when b = 0.1 and b = 0.5 so that the change in behaviour either side of b = 0.26 can 
+    be observed
+    """
+
+    compare_b_values(0.1, 0.5)
+
+    """
+    Find the solution to the shooting problem of the predator-prey equations and plot the isolated orbit
+    """
 
     shooting_orbit = find_shooting_orbit(pred_prey_eq, pred_prey_u0T, pred_prey_phase_cond, pars1)
 
+    print('The time period of the isolated periodic orbit is : ' + str(shooting_orbit[-1]))
+
     plot_isolated_orbit(pred_prey_eq, shooting_orbit, 1, pars1)
 
-    # plt.plot(shooting_orbit[0], shooting_orbit[1], 'go', label='Shooting Orbit')
-    # plt.plot(sol_pred_prey[0], sol_pred_prey[1], 'b', label='Solution')
-    # plt.xlabel('x'), plt.ylabel('y'), plt.legend()
-
+    """
+    Plot the x and y values of the predator-prey equations against time 
+    """
+    plt.title('Solution of the Predator-Prey Equations')
     plt.plot(t_eval, sol_pred_prey[0], 'r', label='x')
     plt.plot(t_eval,  sol_pred_prey[1], 'g', label='y')
+    plt.xlabel('Time'), plt.ylabel('Value of variables')
     plt.show()
 
 
