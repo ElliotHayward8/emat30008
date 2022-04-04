@@ -11,6 +11,7 @@ def func1(x, t):
     :param t: Time value
     :return: Value of dx/dt = x
     """
+
     return x
 
 
@@ -21,6 +22,7 @@ def func2(X, t):
     :param t: Time value
     :return: returns an array of dx/dt and dy/dt at (X, t) as a numpy array
     """
+
     x = X[0]
     y = X[1]
 
@@ -32,7 +34,7 @@ def func2(X, t):
 
 def euler_step(f, x0, t0, h, *pars):
     """
-    This function performs one euler step
+    This function performs a single euler step
     :param f: Function defining an ODE or system of ODEs
     :param x0: Starting x value(s)
     :param t0: Starting time value
@@ -40,6 +42,7 @@ def euler_step(f, x0, t0, h, *pars):
     :param pars: Array of any additional parameters
     :return: returns the value of function after 1 step (at t1) and t1
     """
+
     x1 = x0 + h * f(x0, t0, *pars)
     t1 = t0 + h
     return x1, t1
@@ -55,6 +58,7 @@ def rk4_step(f, x0, t0, h, *pars):
     :param pars: Array of any additional parameters
     :return: returns the value of function after 1 step (at t1) and the value t1
     """
+
     half_h = h / 2
     k1 = f(x0, t0, *pars)
     k2 = f(x0 + (half_h * k1), t0 + half_h, *pars)
@@ -77,6 +81,7 @@ def solve_to(f, x0, t0, t1, deltat_max, solver='rk4', *pars):
     :param pars: Array of any additional parameters
     :return: X value at time t1
     """
+
     h = deltat_max
     t, x = t0, x0
 
@@ -104,7 +109,8 @@ def solve_ode(f, x0, t_eval, deltat_max, solver, ODEs, *pars):
     :param pars: Array of any additional parameters
     :return: Returns an array of x values at each time value in t_eval
     """
-    # Check the values of x0, t_eval and deltat_max
+
+    # Check the types of x0, t_eval and deltat_max (should be arrays of floats/integers)
     array_int_or_float(x0, 'x0 (initial condition)')
     array_int_or_float(t_eval, 't_eval')
     array_int_or_float(deltat_max, 'deltat_max')
@@ -115,7 +121,7 @@ def solve_ode(f, x0, t_eval, deltat_max, solver, ODEs, *pars):
     # define the empty x array depending on size of x0 and t_eval
     if ODEs:
         x_array = np.empty(shape=(len(t_eval), len(x0)))
-    else:  # if we have a first oder ODE len() doesn't work
+    else:  # if it isn't a system of ODEs then len would return an error
         x_array = np.empty(shape=(len(t_eval), 1))
     x_array[0] = x0
 
@@ -123,6 +129,7 @@ def solve_ode(f, x0, t_eval, deltat_max, solver, ODEs, *pars):
         xn = solve_to(f, x_array[n], t_eval[n], t_eval[n+1], deltat_max, solver, *pars)
         x_array[n + 1] = xn
 
+    # For the system of ODEs we need to transpose
     if ODEs:
         x_array = x_array.transpose()
 
@@ -131,7 +138,7 @@ def solve_ode(f, x0, t_eval, deltat_max, solver, ODEs, *pars):
 
 def func1_error_graph(f, N, x0, t0, t1, *pars):
     """
-    This function creates an error graph for the two methods for the function dx/dt = x
+    This function creates a log-log graph of the error for the rk4 and euler method when solving the function dx/dt = x
     :param f: Function defining an ODE or system of ODEs
     :param N: The lowest order of h to calculate the error of (if N = 5, h = 10^-5)
     :param x0: Starting x value(s)
@@ -139,6 +146,7 @@ def func1_error_graph(f, N, x0, t0, t1, *pars):
     :param t1: Final time value
     :param pars: Array of any additional parameters
     """
+
     x_error_list, deltat_max_list, xn_error_list = [], [], []
     for deltat_max in np.logspace(-N, -1, 2*N):
         x1 = solve_to(f, x0, t0, t1, deltat_max, 'euler', *pars)
@@ -158,14 +166,15 @@ def func1_error_graph(f, N, x0, t0, t1, *pars):
 
 def time_methods(f, x0, t0, t1, *pars):
     """
-    This function times the two methods when they have the same error over 10,000 runs (For the report I used f = func1,
-    x0 = 1, t0 = 0 and t1 = 1
+    This function times the two methods, when they have the same error, over 10,000 runs (For the report I used
+    f = func1, x0 = 1, t0 = 0 and t1 = 1
     :param f: Function defining an ODE or system of ODEs
     :param x0: Starting x value(s)
     :param t0: Starting time value
     :param t1: Final time value
     :param pars: Array of any additional parameters
     """
+
     time0 = time.time()
     n = 0
     while n < 10000:
@@ -187,6 +196,7 @@ def true_func2(t):
     :param t: Time value
     :return: Returns an array of x and y at time t
     """
+
     x = np.sin(t) + np.cos(t)
     y = np.cos(t) - np.sin(t)
     return np.array([x, y])
@@ -202,6 +212,7 @@ def func2_comparison_graph(deltat_max, time_periods, x0, total_time, *pars):
     :param total_time: time to run models over
     :param pars: Array of any additional parameters
     """
+
     t = np.linspace(0, total_time, time_periods)
     euler_sol = solve_ode(func2, x0, t, deltat_max, 'euler', True, *pars)
     euler_sol_x, euler_sol_y = euler_sol[0], euler_sol[1]
@@ -228,17 +239,33 @@ def func2_comparison_graph(deltat_max, time_periods, x0, total_time, *pars):
     fig.tight_layout()
     plt.show()
 
+    plt.plot(euler_sol_x, euler_sol_y, 'b-', label='Euler Method')
+    plt.plot(rk4_sol_x, rk4_sol_y, 'g-', label='RK4 Method')
+    plt.plot(sol_x, sol_y, 'r-', label='True Solution')
+    plt.xlabel('x'), plt.ylabel('y'), plt.legend()
+    plt.title('Plot of x against y over time')
+    plt.show()
+
 
 def main():
-    # Plot the error graph for both the euler and RK4 method as the value of h, the step-size, changes
+    """
+    Plot the error graph for both the euler and RK4 method as the value of h, the step-size, changes
+    """
+
     func1_error_graph(func1, 5, 1, 0, 1)
 
-    # Measure the time taken to run both the euler and RK4 methods 10,000 times to compare how long each method
-    # takes, when they have the same value for their error
+    """
+    Measure the time taken to run both the euler and RK4 methods 10,000 times to compare the speed of each method, 
+    when they have the same value for their error
+    """
+
     time_methods(func1, 1, 0, 1)
 
-    # Graphs to compare the solutions generated from both the euler and RK4 method with the true solution of
-    # func2
+    """
+    Graphs to compare the solutions generated from both the euler and RK4 method with the true solution of
+    func2
+    """
+
     func2_comparison_graph(0.25, 1000, [1, 1], 50)
 
 
