@@ -6,6 +6,7 @@ from ODE_Solvers import euler_step, rk4_step, solve_ode, solve_to
 from collections import Counter
 from math import pi
 from numerical_shooting import find_shooting_orbit
+import warnings
 
 # A program which tests the find_shooting_orbit function
 
@@ -217,6 +218,49 @@ def output_tests():
         failed_output_tests.append('Supercritical-Hopf bifurcation output test')
         print('Supercritical-Hopf bifurcation output test : Test Failed')
 
+    def pred_prey_eq(X, t, pars):
+        """
+        A function which defines the predator prey equations
+        :param X: Vector of parameter values (x, y)
+        :param t: Time value
+        :param pars: Additional parameters which define the equation (a, b, d)
+        :return: Array of derivatives dx/dt and dy/dt (dxdt, dydt)
+        """
+        x = X[0]
+        y = X[1]
+        a, b, d = pars[0], pars[1], pars[2]
+        dxdt = x * (1 - x) - (a * x * y) / (d + x)
+        dydt = b * y * (1 - (y / x))
+        return np.array([dxdt, dydt])
+
+    # define the phase condition for the predator prey equations
+    def pred_prey_phase_cond(x0, pars):
+        return pred_prey_eq(x0, 0, pars)[0]
+
+    good_pred_prey_u0T = [0.58, 0.285, 21]
+    bad_pred_prey_u0T = [50, 50000, 1]
+
+    # Test for bad initial u0 guess
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            bad_pred_prey_3d = find_shooting_orbit(pred_prey_eq, bad_pred_prey_u0T, pred_prey_phase_cond, [1, 0.2, 0.1])
+        print('Pred-Prey equations with bad u0 test : Test Failed')
+        passed = False
+        failed_output_tests.append('Pred-Prey equations with bad u0 test')
+    except ValueError:
+        print('Pred-Prey equations with bad u0 test : Test Passed')
+
+    shooting_orbit = find_shooting_orbit(pred_prey_eq, good_pred_prey_u0T, pred_prey_phase_cond, [1, 0.2, 0.1])
+
+    # True values obtained from inspection of the Pred-Prey graph
+    if np.allclose(shooting_orbit, [0.577871, 0.286148, 20.816866]):
+        print('Pred-Prey accurate output test : Test Passed')
+    else:
+        passed = False
+        failed_output_tests.append('Pred-Prey accurate output test')
+        print('Pred-Prey accurate output test : Test Failed')
+
     def hopf_3d(u0, t, pars):
         """
         A function which defines the 3D hopf bifurcation
@@ -264,11 +308,11 @@ def output_tests():
     true_T = 2 * pi  # Define the time period of the hopf bifurcation (2pi / 1 = 2pi)
 
     if np.allclose(true_u, shooting_u) and np.isclose(true_T, T):
-        print('3D Hopf bifurcation : Test Passed')
+        print('3D Hopf bifurcation accurate output test : Test Passed')
     else:
         passed = False
-        failed_output_tests.append('3D Hopf bifurcation output test')
-        print('3D Hopf bifurcation : Test Failed')
+        failed_output_tests.append('3D Hopf bifurcation accurate output test')
+        print('3D Hopf bifurcation accurate output test : Test Failed')
 
     # Print the results of all the output tests
     if passed:

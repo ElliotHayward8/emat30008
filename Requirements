@@ -4,3 +4,4 @@ collections
 scipy
 matplotlib
 numpy
+warnings

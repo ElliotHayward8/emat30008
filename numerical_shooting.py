@@ -127,12 +127,11 @@ def find_shooting_orbit(f, u0T, phase_cond, *pars):
     G = shooting(f)
     fsolve_sol = fsolve(G, u0T, args=(phase_cond, *pars), full_output=True)
     shooting_orbit = fsolve_sol[0]
-    converge = fsolve_sol[-2]
-
+    converge = fsolve_sol[2]
     if converge == 1:
         return shooting_orbit
     else:
-        raise TypeError("fsolve was unable to converge")
+        raise ValueError("fsolve was unable to converge")
 
 
 def plot_isolated_orbit(f, shooting_orbit, ODEs, *pars):
@@ -196,7 +195,7 @@ def main():
     """
 
     shooting_orbit = find_shooting_orbit(pred_prey_eq, pred_prey_u0T, pred_prey_phase_cond, pars1)
-
+    print(shooting_orbit)
     print('The time period of the isolated periodic orbit is : ' + str(shooting_orbit[-1]))
 
     plot_isolated_orbit(pred_prey_eq, shooting_orbit, 1, pars1)
