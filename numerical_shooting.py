@@ -195,7 +195,7 @@ def main():
     """
 
     shooting_orbit = find_shooting_orbit(pred_prey_eq, pred_prey_u0T, pred_prey_phase_cond, pars1)
-    print(shooting_orbit)
+
     print('The time period of the isolated periodic orbit is : ' + str(shooting_orbit[-1]))
 
     plot_isolated_orbit(pred_prey_eq, shooting_orbit, 1, pars1)

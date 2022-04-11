@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
+import warnings
 import numpy as np
 from numerical_shooting import shooting
 from scipy.optimize import fsolve
+from scipy.linalg import norm
 from value_checks import array_int_or_float
 
 
@@ -56,7 +58,7 @@ def modified_hopf(u0, t, pars):
 def nat_par_continuation(f, u0_guess, pars0, max_par, vary_par, max_steps=100, discretisation=shooting,
                          solver=fsolve, phase_cond='none'):
     """
-    Function which performs natural parameter continuation on an inputted ODE, f
+    Function which performs natural parameter continuation on an inputted function/ODE (f)
     :param f: An ODE to perform natural parameter continuation on
     :param u0_guess: Estimated value of the solution at
     :param pars0: The initial variables
@@ -65,8 +67,11 @@ def nat_par_continuation(f, u0_guess, pars0, max_par, vary_par, max_steps=100, d
     :param max_steps: Maximum number of steps to take
     :param discretisation: The discretisation to use
     :param solver: The solver to use
+    :param phase_cond: Phase condition for the inputted ODE/system of ODEs
     :return: A list of values of the varied parameter and a list of solution values
     """
+    # cancel any RuntimeWarnings as they just inform that the iteration isn't making good progress
+    warnings.simplefilter("ignore", category=RuntimeWarning)
 
     # Check u0_guess, pars0 only contain integers or floats
     array_int_or_float(u0_guess, 'u0_guess')
@@ -84,32 +89,72 @@ def nat_par_continuation(f, u0_guess, pars0, max_par, vary_par, max_steps=100, d
 
     par_list = np.linspace(min_par, max_par, max_steps)
 
-    # if a phase condition is required pass it into the pars so that it can be passed into the solver
-    if phase_cond != 'none':
-        initial_pars0 = (phase_cond, pars0)
-    else:
-        initial_pars0 = pars0
+    u0 = u0_guess
+    # For every parameter value find the solution
+    sol_list = []
+    for par in par_list:
+        pars0[vary_par] = par
 
-    print('nat_par initial_pars = ' + str(initial_pars0))
-    print('type of discretisation of function' + str(type(discretisation(f))))
+        # if a phase condition is required pass it into the pars so that it can be passed into the solver
+        if phase_cond != 'none':
+            initial_pars0 = (phase_cond, pars0)
+        else:
+            initial_pars0 = pars0
 
-    first_sol = solver(discretisation(f), u0_guess, args=initial_pars0)
+        sol = np.array(solver(discretisation(f), u0, args=initial_pars0))
 
-    # for par in par_list:
+        sol_list.append(sol)
+
+        # Set the previous solution to be the guess for the next parameter value
+        u0 = sol
+
+    return par_list, np.array(sol_list)
 
 
 def num_continuation(f, method, u0_guess, pars0, max_par, vary_par, max_steps=100, discretisation=shooting,
                      solver=fsolve, phase_cond='none'):
 
-    if method == 'natural parameter':
-        nat_par_continuation()
+    if method == 'natural':
+        par_list, sol_list = nat_par_continuation(f, u0_guess, pars0, max_par, vary_par, max_steps, discretisation,
+                                                  solver, phase_cond)
+    # elif method == 'pseudo':
+        # pseudo_continuation()
+    else:
+        raise NameError(f"method : {method} isn't present (must select 'natural' or 'pseudo')")
 
+    return par_list, sol_list
 
 
 def main():
+    """
+    First example on an algebraic cubic equation (not an ODE, no phase condition required)
+
+    Try both continuation methods on the cubic function when varying the c parameter between 2 and -2
+    """
+
+    u0_guess_cubic = np.array([1])
+
+    np_par_list, np_sol_list = nat_par_continuation(cubic, u0_guess_cubic, [-2], 2, 0, 200, lambda x: x, fsolve)
+
+    plt.plot(np_par_list, np_sol_list, 'b-', label='Natural parameter')
+    plt.xlabel('c'), plt.ylabel('||x||')
+    plt.show()
+
+    """
+    Second example on the hopf bifurcation normal form
+    
+    Try both continuation methods on the hopf bifurcation system of ODEs, varying the Beta parameter between 2 and 0
+    """
     u0_guess_hopfnormal = np.array([1.4, 0, 6.3])
 
-    nat_par_continuation(normal_hopf, u0_guess_hopfnormal, [2, -1], 2, 0, 100, shooting, fsolve, pc_normal_hopf)
+    # nat_par_continuation(normal_hopf, u0_guess_hopfnormal, [2, -1], 2, 0, 100, shooting, fsolve, pc_normal_hopf)
+
+    """
+    Third example on the modified Hopf bifurcation normal form 
+    
+    Try both continuation methods on the modified Hopf bifurcation system of ODEs, varying the Beta parameter between 2
+    and -1
+    """
 
 
 if __name__ == '__main__':

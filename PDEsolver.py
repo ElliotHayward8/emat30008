@@ -244,14 +244,12 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0_func, bc_L_func, b
         a_fe = create_tri_diag_mat(mx + 1, lmbda, 1 - (2 * lmbda), lmbda)
 
         a_fe[0, 1] = a_fe[0, 1] * 2
-        a_fe[-1, -2] = a_fe[-1, -2] * 2
-
+        a_fe[mx, mx - 1] = a_fe[mx, mx - 1] * 2
         for j in range(0, mt):
             # Forward Euler time step at inner mesh points
             # PDE discretised at position x[i], time t[j]
-            bc_0 = bc_0_func(0, t[j])
+            bc_0 = -bc_0_func(0, t[j])
             bc_L = bc_L_func(L, t[j])
-
             # Define the RHS function
             if source is not None:
                 F_x = np.vstack(source(x, t[j]))
@@ -261,8 +259,7 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0_func, bc_L_func, b
             zero_vec = np.zeros(mx - 1)
             neu_bc_vec = np.append(zero_vec, bc_L)
             neu_bc_vec = np.insert(neu_bc_vec, 0, -bc_0, axis=0)
-
-            u_j = a_fe.dot(np.vstack(u_j)) + (2 * lmbda * deltax) * np.vstack(neu_bc_vec) + (deltat * F_x)
+            u_j = a_fe.dot(np.vstack(u_j)) + ((2 * lmbda * deltat) * np.vstack(neu_bc_vec)) + (deltat * F_x)
 
     elif bc_type == 'periodic':
 
@@ -374,110 +371,6 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type='dirichlet', m
     return x, u_j
 
 
-def error_with_time(u_i, u_exact, mt_values):
-    """
-    Function which measures how the error of the methods changes as mt changes
-    :param u_i: Function which defines the prescribed initial temperature
-    :param u_exact: exact solution of u
-    :param mt_values: Values of mt
-    """
-    # Set problem parameters/functions
-    kappa = 1.0  # diffusion constant - how easily diffusion occurs
-    T, mx, L = 0.5, 8, 1.0  # total time to solve for and number of spatial values, length of spatial domain
-
-    # Set up the numerical environment variables
-    x = np.linspace(0, L, mx + 1)  # mesh points in space
-    mt_count, mt_num = 0, len(mt_values)
-
-    u_j_cn_error, u_j_fe_error, u_j_be_error = [0] * mt_num, [0] * mt_num, [0] * mt_num
-    deltat_list = [0] * mt_num
-
-    def bc_0(x, t):
-        return 0
-
-    def bc_L(x, t):
-        return 0
-
-    for mt in mt_values:
-        # Ensure mt is an integer
-        mt = int(mt)
-
-        # Set up the numerical environment variables
-        t = np.linspace(0, T, mt + 1)  # mesh points in space and time
-        deltat = t[1] - t[0]  # grid spacing in x and t
-
-        x_fe, u_j_fe = pde_solver(u_i, mx, mt, kappa, L, T, bc_0, bc_L, 'dirichlet')
-        x_be, u_j_be = pde_solver(u_i, mx, mt, kappa, L, T, bc_0, bc_L, 'dirichlet', 'be matrix vector')
-        x_cn, u_j_cn = pde_solver(u_i, mx, mt, kappa, L, T, bc_0, bc_L, 'dirichlet', 'crank nicholson')
-        u_j_exact = u_exact(x, T)
-
-        u_j_fe_error[mt_count] = sum(abs(u_j_fe - u_j_exact)) / len(u_j_exact)
-        u_j_be_error[mt_count] = sum(abs(u_j_be - u_j_exact)) / len(u_j_exact)
-        u_j_cn_error[mt_count] = sum(abs(u_j_cn - u_j_exact)) / len(u_j_exact)
-
-        deltat_list[mt_count] = deltat
-        mt_count += 1
-
-    plt.plot(deltat_list, u_j_cn_error, 'r-', label='Crank Nicholson')
-    plt.plot(deltat_list, u_j_fe_error, 'b-', label='Forward Euler')
-    plt.plot(deltat_list, u_j_be_error, 'g-', label='Backward Euler')
-    plt.legend()
-    plt.xlabel(''r'$\Delta t$'), plt.ylabel('Error in u approximation')
-    plt.show()
-
-
-def error_with_x(u_i, u_exact, mx_values):
-    """
-    Function which measures how the error of the methods changes as mt changes
-    :param u_i: Function which defines the prescribed initial temperature
-    :param u_exact: exact solution of u
-    :param mx_values: Values of mx
-    """
-    # Set problem parameters/functions
-    kappa = 1.0  # diffusion constant - how easily diffusion occurs
-    T, mt, L = 0.5, 50000, 1.0  # total time to solve for and number of spatial values, length of spatial domain
-
-    # Set up the numerical environment variables
-
-    mx_count, mx_num = 0, len(mx_values)
-
-    u_j_cn_error, u_j_fe_error, u_j_be_error = [0] * mx_num, [0] * mx_num, [0] * mx_num
-    deltax_list = [0] * mx_num
-
-    def bc_0(x, t):
-        return 0
-
-    def bc_L(x, t):
-        return 0
-
-    for mx in mx_values:
-        # Ensure mx is an integer
-        mx = int(mx)
-
-        # Set up the numerical environment variables
-        x = np.linspace(0, T, mx + 1)  # mesh points in space and time
-        deltax = x[1] - x[0]  # grid spacing in x and t
-
-        x_fe, u_j_fe = pde_solver(u_i, mx, mt, kappa, L, T, bc_0, bc_L, 'dirichlet', 'fe matrix vector')
-        x_be, u_j_be = pde_solver(u_i, mx, mt, kappa, L, T, bc_0, bc_L, 'dirichlet', 'be matrix vector')
-        x_cn, u_j_cn = pde_solver(u_i, mx, mt, kappa, L, T, bc_0, bc_L, 'dirichlet', 'crank nicholson')
-        u_j_exact = u_exact(x, T)
-
-        u_j_fe_error[mx_count] = sum(abs(u_j_fe - u_j_exact)) / len(u_j_exact)
-        u_j_be_error[mx_count] = sum(abs(u_j_be - u_j_exact)) / len(u_j_exact)
-        u_j_cn_error[mx_count] = sum(abs(u_j_cn - u_j_exact)) / len(u_j_exact)
-
-        deltax_list[mx_count] = deltax
-        mx_count += 1
-
-    plt.plot(deltax_list, u_j_cn_error, 'r-', label='Crank Nicholson')
-    plt.plot(deltax_list, u_j_fe_error, 'b-', label='Forward Euler')
-    plt.plot(deltax_list, u_j_be_error, 'g-', label='Backward Euler')
-    plt.legend()
-    plt.xlabel(''r'$\Delta x$'), plt.ylabel('Error in u approximation')
-    plt.show()
-
-
 def main():
 
     """
@@ -518,10 +411,6 @@ def main():
 
     x_cn, u_j_cn = pde_solver(u_i, mx, mt, 1.0, L, T, bc_is_0, bc_is_0, 'dirichlet', 'crank nicholson')
 
-    # mt_vals, mx_vals = np.linspace(65, 115, 50), np.linspace(10, 200, 40)
-    # error_with_time(u_i, u_exact, mt_vals)
-    # error_with_x(u_i, u_exact, mx_vals)
-
     # Check that forward euler and the matrix vector form return the same answer
     x, u_j = pde_solver(u_i, mx, mt, 1.0, L, T, bc_is_0, bc_is_0, 'dirichlet', 'forward_euler')
 
@@ -530,41 +419,28 @@ def main():
     xx = np.linspace(0, L, 250)
 
     # Plot the final result and exact solution
-    plt.plot(x, u_j_cn, 'go', label='crank nicholson')
-    plt.plot(x, u_j_be, 'mo', label='Backward Euler')
-    plt.plot(x, u_j_fe, 'ro', label='Forward Euler')
+    plt.plot(x, u_j_cn, 'g-', label='crank nicholson')
+    plt.plot(x, u_j_be, 'm-', label='Backward Euler')
+    plt.plot(x, u_j_fe, 'r-', label='Forward Euler')
     plt.plot(xx, u_exact(xx, T), 'b-', label='exact')
     plt.xlabel('x'), plt.ylabel('u(x,' + str(T) + ')')
     plt.legend(loc='upper right')
     plt.show()
 
-    # x_fe_ne, u_j_fe_ne = pde_solver(u_i, mx, mt, 1.0, L, T, bc_is_1, bc_is_1, 'neumann', 'fe matrix vector')
-    # plt.plot(x_fe_ne, u_j_fe_ne, 'bo', label='Forward Euler')
-    # plt.xlabel('x'), plt.ylabel('u(x,' + str(T) + ')')
-    # plt.legend(loc='upper right')
-    # plt.show()
+    L = 2
+    T = 0.5
+    mx = 100
+    mt = 10000
 
-    # Test to see if the function works for Neumann boundary conditions
-    L, kappa, T = 1, 0.25, 5
-    mx, mt = 400, 400001
-    xx = np.linspace(0, L, 10000)
+    def source_term(x, t):
+        return x + t
 
-    def u_i_neu(x):
-        # initial temperature distribution
-        y = 100 * x * (1 - x)
-        return y
-
-    def u_neu_exact(x, t):
-        y = x - x + (50 / 3)
-        return y
-
-    x_fe_pe, u_j_fe_pe = pde_solver(u_i_neu, mx, mt, kappa, L, T, bc_is_0, bc_is_0, 'neumann', 'fe matrix vector')
-
-    # print(sum(u_i_neu(xx) / len(xx)))
-    true_u_neu = u_neu_exact(x_fe_pe, 5)
-
-    # Check that the Neumann boundary conditions work correctly
-    print('Is the Forward Euler matrix vector form with Neumann BC accurate : ' + str(np.allclose(true_u_neu, u_j_fe_pe)))
+    # Plot Neumann boundary conditions
+    x_fe_ne, u_j_fe_ne = pde_solver(u_i, mx, mt, 1.0, L, T, bc_is_0, bc_is_1, 'neumann', 'fe matrix vector', source_term)
+    plt.plot(x_fe_ne, u_j_fe_ne, 'b-', label='Forward Euler')
+    plt.xlabel('x'), plt.ylabel('u(x,' + str(T) + ')')
+    plt.legend(loc='upper right')
+    plt.show()
 
 
 if __name__ == '__main__':
