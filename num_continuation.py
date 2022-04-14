@@ -102,7 +102,7 @@ def nat_par_continuation(f, u0_guess, pars0, max_par, vary_par, max_steps=100, d
 
 
 def pseudo_arclength(f, u0_guess, pars0, max_par, vary_par, max_steps=100, discretisation=shooting,
-                        solver=fsolve, phase_cond='none'):
+                     solver=fsolve, phase_cond='none'):
     """
     Function which performs natural parameter continuation on an inputted function/ODE (f)
     :param f: An ODE/function to perform natural parameter continuation on
@@ -186,10 +186,17 @@ def pseudo_arclength(f, u0_guess, pars0, max_par, vary_par, max_steps=100, discr
         else:
             initial_pars0 = pars0
 
-        sol = np.array(solver(discretisation(f), sol_list[-1], args=initial_pars0))
+        full_sol = np.array(solver(discretisation(f), sol_list[-1], args=initial_pars0))
+
+        # Split the full_sol into the alpha and U values
+        sol = full_sol[:-1]
+        alpha = sol[-1]
 
         sol_list.append(sol)
+        alpha_list.append(alpha)
 
+        i += 1
+        run = final_alpha(alpha, max_par)
 
 
 def num_continuation(f, method, u0_guess, pars0, max_par, vary_par, max_steps=100, discretisation=shooting,
@@ -213,18 +220,48 @@ def num_continuation(f, method, u0_guess, pars0, max_par, vary_par, max_steps=10
     array_int_or_float(u0_guess, 'u0_guess')
     array_int_or_float(pars0, 'pars0')
 
-    # Check that vary_par is 0 or a positive integer
-    if vary_par >= 0:
-        if not isinstance(vary_par, (int, np.int_)):
-            raise TypeError(f"vary_par: {vary_par} is not an integer")
+    if not callable(f):
+        raise TypeError('The f function must be a callable function')
+    # Check that the output of the discretisation of f is a function
+    if not callable(discretisation(f)):
+        raise TypeError('The discretisation of the f function must be callable')
     else:
-        raise ValueError(f"vary_par: {vary_par} is < 0")
+        func_d = discretisation(f)
+
+        # Check that the output is an array of integers/floats
+        if phase_cond == 'none':
+            trial_func_val = func_d(u0_guess, pars0)
+        else:
+            trial_func_val = func_d(u0_guess, phase_cond, pars0)
+
+        array_int_or_float(trial_func_val, 'trial_func_val')
+
+    if not isinstance(max_par, (int, float, np.float_, np.int_)):
+        raise TypeError(f'max_par: {max_par} must be an integer or a float')
+
+    if not isinstance(max_steps, (int, np.int_)):
+        raise TypeError(f'max_steps: {max_steps} must be an integer')
+    else:
+        if max_steps <= 0:
+            raise ValueError(f'max_steps: {max_steps} must be a positive integer')
+
+    # Check that vary_par is 0 or a positive integer
+    if not isinstance(vary_par, (int, np.int_)):
+        raise TypeError(f'vary_par: {vary_par} must be an integer')
+    elif vary_par >= len(pars0):
+        raise ValueError(f'vary_par ({vary_par}) is out of range of pars0, value should be between 0 and '
+                             f'{len(pars0) - 1}')
+    elif vary_par < 0:
+        raise ValueError(f'vary_par: {vary_par} < 0, but it must be > 0 ')
+
+    if not isinstance(method, str):
+        raise TypeError(f'method ({method}) must be a string')
 
     if method == 'natural':
         par_list, sol_list = nat_par_continuation(f, u0_guess, pars0, max_par, vary_par, max_steps, discretisation,
                                                   solver, phase_cond)
     # elif method == 'pseudo':
-        # par_list, sol_list = pseudo_continuation(f, u0_guess, pars0, max_par, vary_par, max_steps, discretisation
+    # par_list, sol_list = pseudo_continuation(f, u0_guess, pars0, max_par, vary_par, max_steps, discretisation
     #                                             solver, phase_cond)
     else:
         raise NameError(f"method : {method} isn't present (must select 'natural' or 'pseudo')")
@@ -233,7 +270,6 @@ def num_continuation(f, method, u0_guess, pars0, max_par, vary_par, max_steps=10
 
 
 def main():
-
     """
     First example on an algebraic cubic equation (not an ODE, no phase condition required)
 
@@ -243,7 +279,8 @@ def main():
     u0_guess_cubic = np.array([1])
 
     np_par_list, np_sol_list = num_continuation(cubic, 'natural', u0_guess_cubic, [-2], 2, 0, 200, lambda x: x, fsolve)
-    # pa_par_list, pa_sol_list =
+
+    # pa_par_list, pa_sol_list = pseudo_arclength(cubic, u0_guesss_cubic, [-2], 2, 0,
 
     # Plot a graph of c against the norm of x (only one value in x so it is already the norm)
     plt.plot(np_par_list, np_sol_list, 'b-', label='Natural parameter')
