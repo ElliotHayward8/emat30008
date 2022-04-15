@@ -117,22 +117,45 @@ def pseudo_arclength(f, u0_guess, pars0, max_par, vary_par, max_steps=100, discr
     :return: A list of values of the varied parameter and a list of solution values
     """
 
-    # cancel any RuntimeWarnings as they just inform that the iteration isn't making good progress
-    warnings.simplefilter("ignore", category=RuntimeWarning)
-
     def pseudo_eq(u2_guess, u2, secant):
         """
         Function which defines the Pseudo-Arclength equation
-        :param u2_guess:
-        :param u2:
-        :param secant:
+        :param u2_guess: Predicted solution value using the secant
+        :param u2: Solution value
+        :param secant: Calculated secant ((x1, a1) - (x0, a0))
         :return: Returns the pseudo arclength equation
         """
         return np.dot(u2 - u2_guess, secant)
 
-    # define the minimum value of the parameter, and create a list of values of the varying parameter
-    min_par = pars0[vary_par]
+    def new_F(u0a, f,  discretisation, secant, vary_par, pars, phase_cond):
+        """
+        Redefine the root finding problem so that it also includes the pseudo-arclength equation
+        :param u2_guess: Predicted solution value using the secant
+        :param f: An ODE/function to perform natural parameter continuation on
+        :param u0a: Combination of the x value and alpha value
+        :param discretisation: The type of discretisation to use
+        :param secant: Calculated secant ((x1, a1) - (x0, a0))
+        :param vary_par: The index position of the parameter which is varying within pars
+        :param pars: The values of any additional variables
+        :param phase_cond: Phase condition for the problem (is 'none' if no phase condition is required)
+        :return: Root finding problem to be inputted into the solver
+        """
+        disc_f = discretisation(f)
 
+        if phase_cond == 'none':
+            original = disc_f(u0a[:-1], pars)
+        else:
+            original = disc_f(u0a[:-1], phase_cond, pars)
+
+        pseudo_arc_eq = pseudo_eq(u2_guess, u0a[:-1], secant)
+
+        return np.append(original, pseudo_arc_eq)
+
+    # Cancel any RuntimeWarnings as they just inform that the iteration isn't making good progress
+    warnings.simplefilter("ignore", category=RuntimeWarning)
+
+    # Define the minimum value of the parameter, and create a list of values of the varying parameter
+    min_par = pars0[vary_par]
     par_list = np.linspace(min_par, max_par, max_steps)
 
     # Define a function which is True or False depending on whether the final alpha value has been reached, this
@@ -152,7 +175,7 @@ def pseudo_arclength(f, u0_guess, pars0, max_par, vary_par, max_steps=100, discr
 
     u0 = u0_guess
 
-    # if a phase condition is required, pass it into the pars so that it can be passed into the solver
+    # If a phase condition is required, pass it into the pars so that it can be passed into the solver
     if phase_cond != 'none':
         initial_pars0 = (phase_cond, pars0)
     else:
@@ -163,7 +186,7 @@ def pseudo_arclength(f, u0_guess, pars0, max_par, vary_par, max_steps=100, discr
 
     pars0[vary_par] = par_list[1]
 
-    # if a phase condition is required, pass it into the pars so that it can be passed into the solver
+    # If a phase condition is required, pass it into the pars so that it can be passed into the solver
     if phase_cond != 'none':
         initial_pars0 = (phase_cond, pars0)
     else:
@@ -172,31 +195,48 @@ def pseudo_arclength(f, u0_guess, pars0, max_par, vary_par, max_steps=100, discr
     # Obtain the second solution using u1
     u2 = np.array(solver(discretisation(f), u1, args=initial_pars0))
 
-    sol_list = [u1, u2]
+    # Define the list of solutions and alpha values
+    sol_list = [u1[0], u2[0]]
     alpha_list = [par_list[0], par_list[1]]
-    print(sol_list, par_list)
+
     i = 0
     run = True
 
     while run:
 
-        # if a phase condition is required, pass it into the pars so that it can be passed into the solver
-        if phase_cond != 'none':
-            initial_pars0 = (phase_cond, pars0)
-        else:
-            initial_pars0 = pars0
+        pars = pars0
 
-        full_sol = np.array(solver(discretisation(f), sol_list[-1], args=initial_pars0))
+        # Obtain the previous two alpha and x values to calculate the secant
+        a_0, a_1 = alpha_list[-2], alpha_list[-1]
+        x_0, x_1 = sol_list[-2], sol_list[-1]
+
+        # Calculate the change in x and alpha (a)
+        delta_x = x_1 - x_0
+        delta_a = a_1 - a_0
+        secant = np.append(delta_x, delta_a)
+
+        # Calculate the predicted values of x and alpha (a)
+        pred_x = x_1 + delta_x
+        pred_a = a_1 + delta_a
+        pred_val = np.append(pred_x, pred_a)
+
+        pars[vary_par] = pred_a
+
+        full_sol = np.array(solver(new_F, pred_val, args=(f, discretisation, secant, pars, phase_cond)))
 
         # Split the full_sol into the alpha and U values
+        print(str(full_sol) + ' is the full solution')
         sol = full_sol[:-1]
-        alpha = sol[-1]
+        alpha = full_sol[-1]
 
+        # Append the solution and alpha values to a list that is eventually returned by the function
         sol_list.append(sol)
         alpha_list.append(alpha)
 
         i += 1
         run = final_alpha(alpha, max_par)
+
+    return alpha_list, sol_list
 
 
 def num_continuation(f, method, u0_guess, pars0, max_par, vary_par, max_steps=100, discretisation=shooting,
@@ -220,6 +260,7 @@ def num_continuation(f, method, u0_guess, pars0, max_par, vary_par, max_steps=10
     array_int_or_float(u0_guess, 'u0_guess')
     array_int_or_float(pars0, 'pars0')
 
+    # Check that f is a callable function
     if not callable(f):
         raise TypeError('The f function must be a callable function')
     # Check that the output of the discretisation of f is a function
@@ -236,9 +277,11 @@ def num_continuation(f, method, u0_guess, pars0, max_par, vary_par, max_steps=10
 
         array_int_or_float(trial_func_val, 'trial_func_val')
 
+    # Check that max_par is an integer or float
     if not isinstance(max_par, (int, float, np.float_, np.int_)):
         raise TypeError(f'max_par: {max_par} must be an integer or a float')
 
+    # Check that max_steps is a positive integer
     if not isinstance(max_steps, (int, np.int_)):
         raise TypeError(f'max_steps: {max_steps} must be an integer')
     else:
@@ -254,15 +297,16 @@ def num_continuation(f, method, u0_guess, pars0, max_par, vary_par, max_steps=10
     elif vary_par < 0:
         raise ValueError(f'vary_par: {vary_par} < 0, but it must be > 0 ')
 
+    # Check that the method is a string
     if not isinstance(method, str):
         raise TypeError(f'method ({method}) must be a string')
 
     if method == 'natural':
         par_list, sol_list = nat_par_continuation(f, u0_guess, pars0, max_par, vary_par, max_steps, discretisation,
                                                   solver, phase_cond)
-    # elif method == 'pseudo':
-    # par_list, sol_list = pseudo_continuation(f, u0_guess, pars0, max_par, vary_par, max_steps, discretisation
-    #                                             solver, phase_cond)
+    elif method == 'pseudo':
+        par_list, sol_list = pseudo_arclength(f, u0_guess, pars0, max_par, vary_par, max_steps, discretisation,
+                                              solver, phase_cond)
     else:
         raise NameError(f"method : {method} isn't present (must select 'natural' or 'pseudo')")
 
@@ -280,7 +324,7 @@ def main():
 
     np_par_list, np_sol_list = num_continuation(cubic, 'natural', u0_guess_cubic, [-2], 2, 0, 200, lambda x: x, fsolve)
 
-    # pa_par_list, pa_sol_list = pseudo_arclength(cubic, u0_guesss_cubic, [-2], 2, 0,
+    pa_par_list, pa_sol_list = pseudo_arclength(cubic, u0_guess_cubic, [-2], 2, 0, 200, lambda x: x, fsolve)
 
     # Plot a graph of c against the norm of x (only one value in x so it is already the norm)
     plt.plot(np_par_list, np_sol_list, 'b-', label='Natural parameter')

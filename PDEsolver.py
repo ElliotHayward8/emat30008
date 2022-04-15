@@ -50,12 +50,12 @@ def forward_euler(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     """
 
     # Set up the numerical environment variables
-    x = np.linspace(0, L, mx + 1)  # mesh points in space
-    t = np.linspace(0, T, mt + 1)  # mesh points in time
-    deltax = x[1] - x[0]  # grid spacing in x
-    deltat = t[1] - t[0]  # grid spacing in t
+    x = np.linspace(0, L, mx + 1)  # Mesh points in space
+    t = np.linspace(0, T, mt + 1)  # Mesh points in time
+    deltax = x[1] - x[0]  # Grid spacing in x
+    deltat = t[1] - t[0]  # Grid spacing in t
 
-    # calculate the value of lambda, stability requires 0 < lambda < 0.5
+    # Calculate the value of lambda, stability requires 0 < lambda < 0.5
     lmbda = kappa * deltat / (deltax ** 2)  # mesh fourier number
 
     # Check lambda is within the stable range
@@ -97,13 +97,13 @@ def be_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     """
 
     # Set up the numerical environment variables
-    x, t = np.linspace(0, L, mx + 1), np.linspace(0, T, mt + 1)  # mesh points in space and time
-    deltax, deltat = x[1] - x[0], t[1] - t[0]  # grid spacing in x and t
+    x, t = np.linspace(0, L, mx + 1), np.linspace(0, T, mt + 1)  # Mesh points in space and time
+    deltax, deltat = x[1] - x[0], t[1] - t[0]  # Grid spacing in x and t
 
-    # calculate the value of lambda
-    lmbda = kappa * deltat / (deltax ** 2)  # mesh fourier number
+    # Calculate the value of lambda
+    lmbda = kappa * deltat / (deltax ** 2)  # Mesh fourier number
 
-    # create the A_BE tridiagonal matrix
+    # Create the A_BE tridiagonal matrix
     a_be = create_tri_diag_mat(mx - 1, -lmbda, 1 + (2 * lmbda), -lmbda)
     u_j, u_jp1 = np.zeros(x.size), np.zeros(x.size)  # u at current and next time step
 
@@ -145,11 +145,11 @@ def c_n(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     :return: Solution of PDE at time T
     """
     # Set up the numerical environment variables
-    x, t = np.linspace(0, L, mx + 1), np.linspace(0, T, mt + 1)  # mesh points in space and time
-    deltax, deltat = x[1] - x[0], t[1] - t[0]  # grid spacing in x and t
+    x, t = np.linspace(0, L, mx + 1), np.linspace(0, T, mt + 1)  # Mesh points in space and time
+    deltax, deltat = x[1] - x[0], t[1] - t[0]  # Grid spacing in x and t
 
-    # calculate the value of lambda
-    lmbda = kappa * deltat / (deltax ** 2)  # mesh fourier number
+    # Calculate the value of lambda
+    lmbda = kappa * deltat / (deltax ** 2)  # Mesh fourier number
 
     # Create the a_cn and b_cn matrices
     a_cn = create_tri_diag_mat(mx - 1, -lmbda / 2, 1 + lmbda, -lmbda / 2)
@@ -193,7 +193,7 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0_func, bc_L_func, b
     x, t = np.linspace(0, L, mx + 1), np.linspace(0, T, mt + 1)    # mesh points in space and time
     deltax, deltat = x[1] - x[0], t[1] - t[0]  # grid spacing in x and t
 
-    # calculate the value of lambda, stability requires 0 < lambda < 0.5
+    # Calculate the value of lambda, stability requires 0 < lambda < 0.5
     lmbda = kappa * deltat / (deltax ** 2)  # mesh fourier number
 
     # Check lambda is within the stable range
@@ -208,7 +208,7 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0_func, bc_L_func, b
 
     if bc_type == 'dirichlet':
 
-        # create the A_FE tridiagonal matrix
+        # Create the A_FE tridiagonal matrix
         a_fe = create_tri_diag_mat(mx - 1, lmbda, 1 - (2 * lmbda), lmbda)
 
         for j in range(0, mt):
@@ -240,7 +240,7 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0_func, bc_L_func, b
 
     elif bc_type == 'neumann':
 
-        # create the A_FE tridiagonal matrix
+        # Create the A_FE tridiagonal matrix
         a_fe = create_tri_diag_mat(mx + 1, lmbda, 1 - (2 * lmbda), lmbda)
 
         a_fe[0, 1] = a_fe[0, 1] * 2
@@ -263,7 +263,7 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0_func, bc_L_func, b
 
     elif bc_type == 'periodic':
 
-        # create the A_FE tridiagonal matrix
+        # Create the A_FE tridiagonal matrix
         a_fe = create_tri_diag_mat(mx, lmbda, 1 - (2 * lmbda), lmbda)
 
         a_fe[0, -1] = lmbda
@@ -306,7 +306,7 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type='dirichlet', m
     :return: Solution of PDE at time T
     """
 
-    # cancel SciPy warnings about changing sparse matrices
+    # Cancel SciPy warnings about changing sparse matrices
     warnings.simplefilter("ignore", category=scipy.sparse.SparseEfficiencyWarning)
 
     # Check that the boundary conditions given are functions
@@ -378,12 +378,12 @@ def main():
     """
 
     def u_i(x, p=1):
-        # initial temperature distribution to use for all 3 methods
+        # Initial temperature distribution to use for all 3 methods
         y = (np.sin(pi * x / L)) ** p
         return y
 
     def u_exact(x, t):
-        # the exact solution of the first example
+        # The exact solution of the first example
         y = np.exp(-kappa * (pi ** 2 / L ** 2) * t) * np.sin(pi * x / L)
         return y
 

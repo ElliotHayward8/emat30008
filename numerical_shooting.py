@@ -23,7 +23,7 @@ def pred_prey_eq(X, t, pars):
     return np.array([dxdt, dydt])
 
 
-# define the phase condition for the predator prey equations
+# Define the phase condition for the predator prey equations
 def pred_prey_phase_cond(x0, pars):
     return pred_prey_eq(x0, 0, pars)[0]
 
@@ -117,7 +117,7 @@ def find_shooting_orbit(f, u0T, phase_cond, *pars):
     if callable(phase_cond):
         pc_val = phase_cond(u0T[:-1], *pars)
 
-        # check the phase condition returns an int or float
+        # Check the phase condition returns an int or float
         if not isinstance(pc_val, (int, float, np.int_, np.float_)):
             raise TypeError(f"Output of f is of the type {type(pc_val)}. It should be an int or a float")
 

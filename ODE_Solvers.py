@@ -118,10 +118,10 @@ def solve_ode(f, x0, t_eval, deltat_max, solver, ODEs, *pars):
     # Check the inputted ODE is formatted correctly
     ode_checker(f, x0, t_eval, *pars)
 
-    # define the empty x array depending on size of x0 and t_eval
+    # Define the empty x array depending on size of x0 and t_eval
     if ODEs:
         x_array = np.empty(shape=(len(t_eval), len(x0)))
-    else:  # if it isn't a system of ODEs then len would return an error
+    else:  # If it isn't a system of ODEs then len would return an error
         x_array = np.empty(shape=(len(t_eval), 1))
     x_array[0] = x0
 
@@ -221,7 +221,7 @@ def func2_comparison_graph(deltat_max, time_periods, x0, total_time, *pars):
     sol = true_func2(t)
     sol_x, sol_y = sol[0], sol[1]
 
-    # making subplots
+    # Making subplots
     fig, ax = plt.subplots(2)
 
     ax[0].set_title('Graph of y values')

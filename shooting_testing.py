@@ -9,7 +9,6 @@ import warnings
 
 # A program which tests the find_shooting_orbit function
 
-
 def input_tests():
     """
     Test the response of the find_shooting_orbit function to correct and incorrect inputs
@@ -35,27 +34,27 @@ def input_tests():
         dydt = b * y * (1 - (y / x))
         return np.array([dxdt, dydt])
 
-    # define an ode with the wrong output type
+    # Define an ode with the wrong output type
     def wrong_type_output_ode(u0, t, *pars):
         return 'a string not an array'
 
-    # define an ode with the wrong output size
+    # Define an ode with the wrong output size
     def wrong_size_output_ode(u0, t, *pars):
         return np.array([u0[0], u0[0], u0[0]])
 
-    # define the correct phase condition for the predator prey equations
+    # Define the correct phase condition for the predator prey equations
     def right_pred_prey_phase_cond(u0, pars):
         return right_pred_prey_eq(u0, 0, pars)[0]
 
-    # define a phase condition with the wrong shape
+    # Define a phase condition with the wrong shape
     def wrong_shape_prey_phase_cond(u0, *pars):
         return [u0[0], u0[0]]
 
-    # define a phase condition with the wrong output type
+    # Define a phase condition with the wrong output type
     def wrong_type_prey_phase_cond(u0, *pars):
         return 'a string not an array'
 
-    # test it works if inputs are all correct
+    # Test it works if inputs are all correct
     try:
         shooting_orbit = find_shooting_orbit(right_pred_prey_eq, good_u0T, right_pred_prey_phase_cond, good_pars)
         print('Right ODE, pc and IC test : Test Passed')
@@ -64,7 +63,7 @@ def input_tests():
         failed_input_tests.append('Right ode, pc and IC test')
         passed = False
 
-    # test the error works correctly if the ODE output is the wrong type
+    # Test the error works correctly if the ODE output is the wrong type
     try:
         find_shooting_orbit(wrong_type_output_ode, good_u0T, right_pred_prey_phase_cond, good_pars)
         print('ODE with wrong output type test : Test Failed')
@@ -73,7 +72,7 @@ def input_tests():
     except TypeError:
         print('ODE with wrong output type test : Test Passed')
 
-    # test the error if the ODE is of the wrong type
+    # Test the error if the ODE is of the wrong type
     try:
         find_shooting_orbit('a string not a function', good_u0T, right_pred_prey_phase_cond, good_pars)
         print('ODE not a function test : Test Failed')
@@ -82,7 +81,7 @@ def input_tests():
     except TypeError:
         print('ODE not a function test : Test Passed')
 
-    # test the error if an ode with the wrongly sized output is used
+    # Test the error if an ode with the wrongly sized output is used
     try:
         find_shooting_orbit(wrong_size_output_ode, good_u0T, right_pred_prey_phase_cond, good_pars)
         print('ODE with wrongly sized output test : Test Failed')
@@ -91,7 +90,7 @@ def input_tests():
     except ValueError:
         print('ODE with wrongly sized output test : Test Passed')
 
-    # test for if the phase condition isn't a function
+    # Test for if the phase condition isn't a function
     try:
         find_shooting_orbit(right_pred_prey_eq, good_u0T, 'a string not a function', good_pars)
         print('Phase condition is not a function test : Test Failed')
@@ -100,7 +99,7 @@ def input_tests():
     except TypeError:
         print('Phase condition is not a function test : Test Passed')
 
-    # test if the phase condition has a wrongly shaped output
+    # Test if the phase condition has a wrongly shaped output
     try:
         find_shooting_orbit(right_pred_prey_eq, good_u0T, wrong_shape_prey_phase_cond, good_pars)
         print('Phase condition with wrongly sized output test : Test Failed')
@@ -109,7 +108,7 @@ def input_tests():
     except TypeError:
         print('Phase condition with wrongly sized output test : Test Passed')
 
-    # test if the phase condition has the wrongly sized output
+    # Test if the phase condition has the wrongly sized output
     try:
         find_shooting_orbit(right_pred_prey_eq, good_u0T, wrong_type_prey_phase_cond, good_pars)
         print('Phase condition with output of the wrong type test : Test Failed')
@@ -118,7 +117,7 @@ def input_tests():
     except TypeError:
         print('Phase condition with output of the wrong type test : Test Passed')
 
-    # test the function if u0T is of the wrong type
+    # Test the function if u0T is of the wrong type
     try:
         find_shooting_orbit(right_pred_prey_eq, wrong_type_u0T, right_pred_prey_phase_cond, good_pars)
         print('u0T of the wrong type test : Test Failed')
@@ -127,7 +126,7 @@ def input_tests():
     except TypeError:
         print('u0T of the wrong type test : Test Passed')
 
-    # test the function if u0T is wrongly sized
+    # Test the function if u0T is wrongly sized
     try:
         find_shooting_orbit(right_pred_prey_eq, wrong_size_u0T, right_pred_prey_phase_cond, good_pars)
         print('u0T wrongly sized test : Test Failed')
@@ -136,7 +135,7 @@ def input_tests():
     except (IndexError, ValueError):
         print('u0T wrongly sized test : Test Passed')
 
-    # test the function if pars is too small
+    # Test the function if pars is too small
     try:
         find_shooting_orbit(right_pred_prey_eq, good_u0T, right_pred_prey_phase_cond, too_small_pars)
         print('pars wrongly sized test : Test Failed')
@@ -145,7 +144,7 @@ def input_tests():
     except (IndexError, ValueError):
         print('pars wrongly sized test : Test Passed')
 
-    # test the function if pars is of the wrong type
+    # Test the function if pars is of the wrong type
     try:
         find_shooting_orbit(right_pred_prey_eq, good_u0T, right_pred_prey_phase_cond, wrong_type_pars)
         print('pars of the wrong type test : Test Failed')
@@ -172,7 +171,7 @@ def output_tests():
     """
     failed_output_tests, passed = [], True
 
-    # normal hopf bifurcation function
+    # Normal hopf bifurcation function
     def normal_hopf(u0, t, pars):
         """
         Function which defines the Hopf bifurcation normal form system of ODEs
@@ -188,12 +187,12 @@ def output_tests():
         du2dt = u1 + beta * u2 + (sigma * u2) * (u1 ** 2 + u2 ** 2)
         return np.array([du1dt, du2dt])
 
-    # phase condition for the normal hopf bifurcation
+    # Phase condition for the normal hopf bifurcation
     def pc_normal_hopf(u0, pars):
         pc = normal_hopf(u0, 1, pars)[0]
         return pc
 
-    # true solution of the normal hopf bifurcation
+    # True solution of the normal hopf bifurcation
     def true_hopf_normal(t, phase, pars):
         beta = pars[0]
 
@@ -209,7 +208,7 @@ def output_tests():
     true_u = true_hopf_normal(T, 0, [1, -1])
     true_T = 2 * pi  # Define the time period of the hopf bifurcation (2pi / 1 = 2pi)
 
-    # test if the solution from shooting is close to the true solution
+    # Test if the solution from shooting is close to the true solution
     if np.allclose(true_u, shooting_u) and np.isclose(T, true_T):
         print('Supercritical-Hopf bifurcation output test : Test Passed')
     else:
@@ -232,7 +231,7 @@ def output_tests():
         dydt = b * y * (1 - (y / x))
         return np.array([dxdt, dydt])
 
-    # define the phase condition for the predator prey equations
+    # Define the phase condition for the predator prey equations
     def pred_prey_phase_cond(x0, pars):
         return pred_prey_eq(x0, 0, pars)[0]
 
@@ -277,12 +276,12 @@ def output_tests():
         du3dt = -u3
         return np.array([du1dt, du2dt, du3dt])
 
-    # phase condition for the 3D hopf bifurcation
+    # Phase condition for the 3D hopf bifurcation
     def pc_hopf_3d(u0, pars):
         pc = hopf_3d(u0, 1, pars)[0]
         return pc
 
-    # true solution for 3D hopf bifurcation
+    # True solution for 3D hopf bifurcation
     def true_hopf_3d(t, phase, pars):
         """
         Function which defines the true solution of the 3D hopf bifurcation

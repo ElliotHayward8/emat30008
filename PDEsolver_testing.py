@@ -18,7 +18,7 @@ def input_tests():
         return 1
 
     def u_i(x, p=1):
-        # initial temperature distribution
+        # Initial temperature distribution
         y = (np.sin(pi * x / L)) ** p
         return y
 
@@ -82,7 +82,7 @@ def input_tests():
     except TypeError:
         print('kappa of the wrong type test : Test Passed')
 
-    # test the function if L is of the wrong type
+    # Test the function if L is of the wrong type
     try:
         pde_solver(u_i, right_mx, right_mt, right_kappa, [1, 1], right_T, bc_is_0, bc_is_0)
         print('L of the wrong type test : Test Failed')
@@ -118,7 +118,7 @@ def output_tests():
         return 1
 
     def u_i(x, p=1):
-        # initial temperature distribution
+        # Initial temperature distribution
         y = (np.sin(pi * x / L)) ** p
         return y
 
@@ -137,7 +137,7 @@ def output_tests():
     mx, mt = 400, 400001
 
     def u_i_neu(x):
-        # initial temperature distribution
+        # Initial temperature distribution
         y = 100 * x * (1 - x)
         return y
 
