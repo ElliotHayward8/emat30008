@@ -83,11 +83,13 @@ def shooting(f):
             :param T: The time value to solve at
             :return: Returns the solution of the ODE at time T using the rk4 method
             """
+
             t_eval = np.linspace(0, T, 1000)
             sol = solve_ode(f, u0, t_eval, 0.01, 'rk4', True, *pars)
             return sol[:, -1]
 
         T, u0 = u0T[-1], u0T[:-1]
+
         """
         construct an array of the initial guess minus the solution alongside the phase condition this is then to be 
         minimised using a solver to find where these values are 0 in order to isolate a periodic orbit
@@ -125,7 +127,7 @@ def find_shooting_orbit(f, u0T, phase_cond, *pars):
         raise TypeError(f"phase_cond: '{phase_cond}' must be a callable function.")
 
     G = shooting(f)
-    fsolve_sol = fsolve(G, u0T, args=(phase_cond, *pars), full_output=True)
+    fsolve_sol = fsolve(G, u0T, (phase_cond, *pars), full_output=True)
     shooting_orbit = fsolve_sol[0]
     converge = fsolve_sol[2]
     if converge == 1:
