@@ -548,6 +548,7 @@ def main():
             y = (np.sin(pi * x / L)) ** p
             return y
 
+        # Define a function for the source term
         def source_term(x, t):
             return x + t
 
@@ -558,19 +559,27 @@ def main():
 
     # Define the variables for the PDE continuation and the initial guess (the values of the initial guess
     # don't matter)
-    T, kappa, L, mx, mt = 5, 0.5, 4, 24, 5000
+    T, kappa, L, mx, mt = 5, 0.5, 1, 24, 5000
     pars = [T, kappa, L, mx, mt]
 
     u0_guess = np.zeros(mx + 1)
 
-    kappa_list, u_values = num_continuation(neumann_pde, 'natural', u0_guess, pars, 3, 1, 6, lambda x: x, return_pde)
+    L_list, u_values = num_continuation(neumann_pde, 'natural', u0_guess, pars, 3, 2, 5, lambda x: x, return_pde)
 
-    x_vals = np.linspace(0, L, mx + 1)
+    col_list = ['r-', 'b-', 'g-', 'k-', 'c-']
+    count = 0
 
-    plt.plot(x_vals, np.transpose(u_values)[0])
+    while count < len(L_list):
+        x_vals = np.linspace(0, L_list[count], mx + 1)
+        plt.plot(x_vals, u_values[count], col_list[count])
+        count += 1
+
+    # Plot the solutions of the PDE with 6 different values of kappa - this graph demonstrates how changing the value
+    # of kappa changes the value of the PDE
+
     plt.xlabel('x'), plt.ylabel('u(x,' + str(T) + ')')
-    plt.legend(('kappa = 0.5', 'kappa = 1.0', 'kappa = 1.5', 'kappa = 2.0', 'kappa = 2.5', 'kappa = 3.0'))
-    plt.title('How the value of a PDE changes with kappa')
+    plt.legend(('L = 1.0', 'L = 1.5', 'L = 2.0', 'L = 2.5', 'L = 3.0'))
+    plt.title('How the value of a PDE changes with L')
     plt.show()
 
 
