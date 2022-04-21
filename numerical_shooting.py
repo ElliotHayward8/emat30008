@@ -71,31 +71,38 @@ def shooting(f):
         """
         Function which should have a root which returns the periodic orbit of an ODE/ system of ODEs
         :param u0T: Array which contains the starting guess of the coordinates and the time period
-        :param phase_con: Function of the phase condition
+        :param phase_con: Function for the phase condition of the problem
         :param pars: Array of any additional parameters
-        :return: returns an array of the value of the phase condition and the difference between the
+        :return: Returns an array of the value of the phase condition and the difference between the
         """
 
         def F(u0, T):
             """
-            Solution of ODE f at T with initial conditions x0 using the rk4 method
+            Solution of ODE (f) at time T with initial conditions x0 using the rk4 method from ODE_Solvers.py
             :param u0: Initial condition(s) for the ODE
             :param T: The time value to solve at
             :return: Returns the solution of the ODE at time T using the rk4 method
             """
 
+            # Create a list of time values to solve over
             t_eval = np.linspace(0, T, 1000)
             sol = solve_ode(f, u0, t_eval, 0.01, 'rk4', True, *pars)
-            return sol[:, -1]
 
+            # Extract the final solution
+            final_sol = sol[:, -1]
+
+            # return the final solution value
+            return final_sol
+
+        # Extract the inputted time and initial values
         T, u0 = u0T[-1], u0T[:-1]
 
         """
-        construct an array of the initial guess minus the solution alongside the phase condition this is then to be 
+        return an array of the initial guess minus the solution alongside the phase condition this is then to be 
         minimised using a solver to find where these values are 0 in order to isolate a periodic orbit
         """
-        g = np.append(u0 - F(u0, T), phase_con(u0, *pars))
-        return g
+
+        return np.append(u0 - F(u0, T), phase_con(u0, *pars))
     return G
 
 
@@ -121,15 +128,16 @@ def find_shooting_orbit(f, u0T, phase_cond, *pars):
 
         # Check the phase condition returns an int or float
         if not isinstance(pc_val, (int, float, np.int_, np.float_)):
-            raise TypeError(f"Output of f is of the type {type(pc_val)}. It should be an int or a float")
+            raise TypeError(f'Output of f is of the type {type(pc_val)}. It should be an int or a float')
 
     else:
-        raise TypeError(f"phase_cond: '{phase_cond}' must be a callable function.")
+        raise TypeError(f'phase_cond: \'{phase_cond}\' must be a callable function.')
 
     G = shooting(f)
     fsolve_sol = fsolve(G, u0T, (phase_cond, *pars), full_output=True)
     shooting_orbit = fsolve_sol[0]
     converge = fsolve_sol[2]
+
     if converge == 1:
         return shooting_orbit
     else:

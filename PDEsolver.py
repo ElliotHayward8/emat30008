@@ -61,7 +61,7 @@ def forward_euler(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
 
     # Check lambda is within the stable range
     if lmbda <= 0 or lmbda >= 0.5:
-        raise ValueError(f"lmbda: {lmbda} is not within the range 0 < lmbda < 0.5")
+        raise ValueError(f'lmbda: {lmbda} is not within the range 0 < lmbda < 0.5')
 
     u_j, u_jp1 = np.zeros(x.size), np.zeros(x.size)  # u at current and next time step
 
@@ -199,7 +199,7 @@ def fe_matrix_vector_form(u_i_func, mx, mt, kappa, L, T, bc_0_func, bc_L_func, b
 
     # Check lambda is within the stable range
     if lmbda <= 0 or lmbda >= 0.5:
-        raise ValueError(f"lmbda: {lmbda} is not within the range 0 < lmbda < 0.5")
+        raise ValueError(f'lmbda: {lmbda} is not within the range 0 < lmbda < 0.5')
 
     u_j, u_jp1 = np.zeros(x.size), np.zeros(x.size)  # u at current and next time step
 
@@ -301,7 +301,7 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type='dirichlet', m
     :param bc_0: Boundary condition at x = 0
     :param bc_L: Boundary condition at x = L
     :param bc_type: The type of boundary conditions (only the fe matrix vector form method can
-                    handle non-zero boundary conditions and boundary conditions which aren't dirichlet)
+                    handle boundary conditions which are non-homogeneous or aren't dirichlet)
     :param method: Chosen method to use to solve the PDE
     :param source: Defines any source term within the PDE, if there is no source term it is None
     :return: Solution of PDE at time T
@@ -314,45 +314,54 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type='dirichlet', m
     if callable(bc_0):
         # Check that the boundary condition functions return a float or integer
         if not isinstance(bc_0(0, 0), (int, np.int_, float, np.float_)):
-            raise TypeError(f"bc_0(0): {bc_0(0, 0)} is not an integer or float")
+            raise TypeError(f'bc_0(0): {bc_0(0, 0)} is not an integer or float')
 
     else:
-        raise TypeError(f"bc_0: '{bc_0}' must be a callable function.")
+        raise TypeError(f'bc_0: {bc_0} must be a callable function')
 
     if callable(bc_L):
         if not isinstance(bc_L(L, 0), (int, np.int_, float, np.float_)):
-            raise TypeError(f"bc_L(0): {bc_L(L, 0)} is not an integer or float")
+            raise TypeError(f'bc_L(0): {bc_L(L, 0)} is not an integer or float')
 
     else:
-        raise TypeError(f"bc_L: '{bc_L}' must be a callable function.")
+        raise TypeError(f'bc_L: {bc_L} must be a callable function')
 
-    # Check that L is a float or integer
+    # Check that L is a positive float or integer
     if not isinstance(L, (int, np.int_, float, np.float_)):
-        raise TypeError(f"L: {L} is not an integer or float")
+        raise TypeError(f'L: {L} must be an integer or float')
+    else:
+        raise ValueError(f'L: {L} must be a positive integer or float')
 
-    # Check that mx and mt are integers
+    # Check that mx and mt are positive integers
     if not isinstance(mx, (int, np.int_)):
-        raise TypeError(f"mx: {mx} is not an integer")
+        raise TypeError(f'mx: {mx} is not an integer')
+    else:
+        if mx <= 0:
+            raise ValueError(f'mx: {mx} must be a positive integer')
     if not isinstance(mt, (int, np.int_)):
-        raise TypeError(f"mt: {mt} is not an integer")
+        raise TypeError(f'mt: {mt} is not an integer')
+    else:
+        if mt <= 0:
+            raise ValueError(f'mt: {mt} must be a positive integer')
 
     # Check that kappa is a float or integer
     if not isinstance(kappa, (int, np.int_, float, np.float_)):
-        raise TypeError(f"kappa: {kappa} is not an integer or float")
+        raise TypeError(f'kappa: {kappa} is not an integer or float')
 
-    # Check that source is a callable function that is a an integer or float when called with an x and t value
+    # Check that source is a callable function that is an integer or float when called with an x and t value
     if source is not None:
         if callable(source):
             if not isinstance(source(0, 0), (int, np.int_, float, np.float_)):
-                raise TypeError(f"source: {source(0, 0)} must be a float or intger")
+                raise TypeError(f'source: {source(0, 0)} must be a float or integer')
         else:
-            raise TypeError(f"source: {source} is not a callable function")
+            raise TypeError(f'source: {source} is not a callable function')
 
+    # Check that u_i_func is a callable function
     if callable(u_i_func):
         # Check the output of u_i_func is an integer or float
         u_i_L = u_i_func(L)
         if not isinstance(u_i_L, (int, np.int_, float, np.float_)):
-            raise TypeError(f"u_i_L: {u_i_L} must be a float or integer")
+            raise TypeError(f'u_i_L: {u_i_L} must be a float or integer')
         if method == 'forward_euler':
             if bc_type != 'dirichlet':
                 raise TypeError('forward_euler method only works for dirichlet boundary conditions')
@@ -365,15 +374,14 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type='dirichlet', m
             x, u_j = c_n(u_i_func, mx, mt, kappa, L, T, bc_0(0, 0), bc_L(L, 0))
 
         else:
-            raise NameError(f"method : {method} isn't present (must select 'forward_euler', "
-                            f"'fe matrix vector', 'be matrix vector' or 'crank nicholson')")
+            raise NameError(f'method : {method} isn\'t present (must select \'forward_euler\', '
+                            f'\'fe matrix vector\', \'be matrix vector\' or \'crank nicholson\')')
     else:
-        raise TypeError(f"u_i_func: {u_i_func} is not a callable function")
+        raise TypeError(f'u_i_func: {u_i_func} is not a callable function')
     return x, u_j
 
 
 def main():
-
     """
     First example: Solve a simple PDE using all 3 methods
     """
@@ -389,7 +397,7 @@ def main():
         return y
 
     """
-    Define some boundary conditions, here we will use u(0, t) = u(L, t) = 0 for the simple example
+    Define some boundary conditions, here we will use u(0, t) = u(L, t) = 0 for the simple first example
     """
 
     def bc_is_0(x, t):
@@ -399,12 +407,10 @@ def main():
         return 1
 
     """
-    Define the problem parameters for the simple PDE used in example 1
+    Define the problem parameters for the simple PDE used in the first example
     """
 
-    kappa = 1.0
-    L = 1.0
-    T, mt, mx = 0.5, 1000, 10
+    T, mt, mx, kappa, L = 0.5, 1000, 10, 1.0, 1.0
 
     x_fe, u_j_fe = pde_solver(u_i, mx, mt, 1.0, L, T, bc_is_0, bc_is_0, 'dirichlet', 'fe matrix vector')
 
@@ -417,33 +423,32 @@ def main():
 
     print('Do Forward Euler and matrix vector form return the same u values : ' + str(np.allclose(u_j, u_j_fe)))
 
+    # Define values to calculate the true solution
     xx = np.linspace(0, L, 250)
 
-    # Plot the final result and exact solution
+    # Plot the final results
     plt.plot(x, u_j_cn, 'g-', label='crank nicholson')
     plt.plot(x, u_j_be, 'm-', label='Backward Euler')
     plt.plot(x, u_j_fe, 'r-', label='Forward Euler')
+
+    # Plot the exact solution
     plt.plot(xx, u_exact(xx, T), 'b-', label='exact')
     plt.title('Comparison of all 3 methods for a simple PDE')
-    plt.xlabel('x'), plt.ylabel('u(x,' + str(T) + ')')
-    plt.legend(loc='upper right')
+    plt.xlabel('x'), plt.ylabel('u(x,' + str(T) + ')'), plt.legend(loc='upper right')
     plt.show()
 
-    L = 2
-    T = 0.5
-    mx = 100
-    mt = 10000
+    L, T, mx, mt = 2, 0.5, 100, 10000
 
     def source_term(x, t):
         return x + t
 
-    # Plot Neumann boundary conditions
     x_fe_ne, u_j_fe_ne = pde_solver(u_i, mx, mt, 1.0, L, T, bc_is_0, bc_is_1, 'neumann', 'fe matrix vector',
                                     source_term)
+
+    # Plot Neumann boundary conditions
     plt.plot(x_fe_ne, u_j_fe_ne, 'b-', label='Forward Euler')
     plt.title('PDE with Neumann boundary conditions and a source term')
-    plt.xlabel('x'), plt.ylabel('u(x,' + str(T) + ')')
-    plt.legend(loc='upper right')
+    plt.xlabel('x'), plt.ylabel('u(x,' + str(T) + ')'), plt.legend(loc='upper left')
     plt.show()
 
     """

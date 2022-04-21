@@ -66,6 +66,14 @@ def input_tests():
     except TypeError:
         print('mx of the wrong type test : Test Passed')
 
+    # Test the function when mx is a negative integer
+    try:
+        pde_solver(u_i, -5, right_mt, right_mx, L, right_T, bc_is_0, bc_is_0)
+        print('mx is a negative integer test : Test Failed')
+        failed_input_tests.append('mx is a negative integer test')
+    except ValueError:
+        print('mx is a negative integer test : Test Passed')
+
     # Test the function when mt isn't an integer
     try:
         pde_solver(u_i, right_mx, 100.5, right_kappa, L, right_T, bc_is_0, bc_is_0)
@@ -73,6 +81,14 @@ def input_tests():
         failed_input_tests.append('mt of the wrong type test')
     except TypeError:
         print('mt of the wrong type test : Test Passed')
+
+    # Test the function when mt is a negative integer
+    try:
+        pde_solver(u_i, right_mx, -100, right_kappa, L, right_T, bc_is_0, bc_is_0)
+        print('mt is a negative integer test : Test Failed')
+        failed_input_tests.append('mt is a negative integer test')
+    except ValueError:
+        print('mt is a negative integer test : Test Passed')
 
     # Test the function if kappa is of the wrong type
     try:
@@ -97,7 +113,7 @@ def input_tests():
         print('\n---------------------------------------\n')
     else:
         print('\n---------------------------------------\n')
-        print('Some input tests failed: (see printed below)')
+        print('Some input tests failed: (failed tests printed below)')
         [print(test) for test in failed_input_tests]
         print('\n---------------------------------------\n')
 
@@ -132,6 +148,8 @@ def output_tests():
         failed_output_tests.append('Forward Euler and FE matrix vector same output test')
         print('Forward Euler and FE matrix vector same output test : Test Failed')
 
+    print('The following test takes a while to run as it has high mc and mt values to increase accuracy')
+
     # Test to see if the function works for Neumann boundary conditions
     L, kappa, T = 1, 0.25, 5
     mx, mt = 400, 400001
@@ -162,7 +180,7 @@ def output_tests():
         print('\n---------------------------------------')
     else:
         print('\n---------------------------------------\n')
-        print('Some output tests failed: (see printed below)')
+        print('Some output tests failed: (failed tests printed below)')
         [print(test) for test in failed_output_tests]
         print('\n---------------------------------------')
 

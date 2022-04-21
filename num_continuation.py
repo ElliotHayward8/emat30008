@@ -80,7 +80,6 @@ def nat_par_continuation(f, u0_guess, pars, max_par, vary_par, max_steps=100, di
 
     # define the minimum value of the parameter, and create a list of values of the varying parameter
     min_par = pars[vary_par]
-
     par_list = np.linspace(min_par, max_par, max_steps)
 
     u0 = u0_guess
@@ -89,7 +88,7 @@ def nat_par_continuation(f, u0_guess, pars, max_par, vary_par, max_steps=100, di
     for par in par_list:
         pars[vary_par] = par
 
-        # if a phase condition is required, pass it into the pars so that it can be passed into the solver
+        # If a phase condition is required, pass it into the pars so that it can also be passed into the solver
         if phase_cond != 'none':
             initial_pars0 = (phase_cond, pars)
         else:
@@ -214,7 +213,6 @@ def pseudo_arclength(f, u0_guess, pars, max_par, vary_par, max_steps=100, discre
         # Obtain the previous two alpha and x values to calculate the secant
         a_0, a_1 = alpha_list[-2], alpha_list[-1]
         x_0, x_1 = sol_list[-2], sol_list[-1]
-        prev_sol = np.append(x_1, a_1)
 
         # Calculate the change in x and alpha (a)
         delta_x = x_1 - x_0
@@ -283,13 +281,11 @@ def num_continuation(f, method, u0_guess, pars, max_par, vary_par, max_steps=100
     if not callable(discretisation(f)):
         raise TypeError('The discretisation of the f function must be callable')
     else:
-        func_d = discretisation(f)
-
         # Check that the output is an array of integers/floats
         if phase_cond == 'none':
-            trial_func_val = func_d(u0_guess, pars)
+            trial_func_val = discretisation(f)(u0_guess, pars)
         else:
-            trial_func_val = func_d(u0_guess, phase_cond, pars)
+            trial_func_val = discretisation(f)(u0_guess, phase_cond, pars)
 
         array_int_or_float(trial_func_val, 'trial_func_val')
 
@@ -324,7 +320,7 @@ def num_continuation(f, method, u0_guess, pars, max_par, vary_par, max_steps=100
         par_list, sol_list = pseudo_arclength(f, u0_guess, pars, max_par, vary_par, max_steps, discretisation,
                                               solver, phase_cond)
     else:
-        raise NameError(f"method : {method} isn't present (must select 'natural' or 'pseudo')")
+        raise NameError(f'method : {method} isn\'t present (must select \'natural\' or \'pseudo\')')
 
     return par_list, sol_list
 
@@ -338,8 +334,10 @@ def main():
 
     u0_guess_cubic = np.array([1])
 
+    # Perform natural parameter continuation with c varying from -2 to 2
     np_par_list, np_sol_list = num_continuation(cubic, 'natural', u0_guess_cubic, [-2], 2, 0, 200, lambda x: x, fsolve)
 
+    # Perform pseudo-arclength continuation with c between -2 and 2 (pseudo-arclength stops if the value of x is < 0)
     pa_par_list, pa_sol_list = num_continuation(cubic, 'pseudo', u0_guess_cubic, [-2], 2, 0, 200, lambda x: x, fsolve)
 
     norm_pa_sol_list = [abs(number) for number in pa_sol_list]
@@ -347,6 +345,7 @@ def main():
     # Plot a graph of c against the norm of x (only one value in x so it is already the norm)
     plt.plot(np_par_list, np_sol_list, 'b-', label='Natural parameter')
     plt.plot(pa_par_list, norm_pa_sol_list, 'r-', label='Pseudo-arclength')
+    plt.title('Cubic equation continuation with c varying between -2 and 2')
     plt.xlabel('c'), plt.ylabel('||x||'), plt.legend()
     plt.show()
 
@@ -365,7 +364,7 @@ def main():
 
     # Plot a graph of Beta against the norm of the solut (only one value in x so it is already the norm)
     plt.plot(np_par_list, norm_np_sol_list, 'b-', label='Natural parameter')
-    # plt.plot(pa_par_list, pa_sol_list, 'r-', label='Pseudo-arclength')
+    # plt.plot(pa_par_list, norm_pa_sol_list, 'r-', label='Pseudo-arclength')
     plt.xlabel('Beta'), plt.ylabel('||x||'), plt.legend()
     plt.show()
 

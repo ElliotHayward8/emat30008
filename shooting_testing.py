@@ -160,7 +160,7 @@ def input_tests():
         print('\n---------------------------------------\n')
     else:
         print('\n---------------------------------------\n')
-        print('Some input tests failed: (see printed below)')
+        print('Some input tests failed: (failed tests printed below)')
         [print(test) for test in failed_input_tests]
         print('\n---------------------------------------\n')
 
@@ -319,7 +319,7 @@ def output_tests():
         print('\n---------------------------------------')
     else:
         print('\n---------------------------------------\n')
-        print('Some output tests failed: (see printed below)')
+        print('Some output tests failed: (failed tests printed below)')
         [print(test) for test in failed_output_tests]
         print('\n---------------------------------------')
 

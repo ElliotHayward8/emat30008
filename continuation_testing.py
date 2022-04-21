@@ -30,14 +30,44 @@ def input_tests():
     good_index = 0
     good_max_steps = 200
 
-    # Test the function runs when all the inputs are correct
+    u0_hopfnormal = np.array([1.41, 0, 6.28])
+
+    def normal_hopf(u0, t, pars):
+        """
+        Function which defines the Hopf bifurcation normal form system of ODEs
+        :param u0: Parameter values (u1, u2)
+        :param t: Time value
+        :param pars: Additional parameters which are required to define the system of ODEs (beta, sigma)
+        :return: returns an array of du1/dt and du2/dt at (X, t) as a numpy array
+        """
+        beta, sigma = pars[0], pars[1]
+        u1, u2 = u0[0], u0[1]
+
+        du1dt = beta * u1 - u2 + (sigma * u1) * (u1 ** 2 + u2 ** 2)
+        du2dt = u1 + beta * u2 + (sigma * u2) * (u1 ** 2 + u2 ** 2)
+        return np.array([du1dt, du2dt])
+
+    # phase condition for the normal Hopf bifurcation (u1 gradient = 0)
+    def pc_normal_hopf(u0, pars):
+        return normal_hopf(u0, 0, pars)[0]
+
+    # Test the function runs when all the inputs are correct for natural parameter continuation
     try:
         num_continuation(cubic, 'natural', good_u0_guess_cubic, good_pars, good_end_par, good_index, good_max_steps,
                          lambda x: x, fsolve)
-        print('All input values good test : Test Passed')
+        print('All input values good natural parameter continuation test : Test Passed')
     except (TypeError, ValueError):
-        print('All input values good test : Test Failed')
-        failed_input_tests.append('All input values good test')
+        print('All input values good natural parameter continuation test : Test Failed')
+        failed_input_tests.append('All input values good natural parameter continuation test')
+        passed = False
+
+    # Test the function runs when all inputs are correct for pseudo-arclength continuation
+    try:
+        num_continuation(normal_hopf, 'natural', u0_hopfnormal, [2, -1], -0.4, 0, 100, shooting, fsolve, pc_normal_hopf)
+        print('All input values good pseudo-arclength continuation test : Test Passed')
+    except (TypeError, ValueError):
+        print('All input values good pseudo-arclength continuation test : Test Failed')
+        failed_input_tests.append('All input values good pseudo-arclength continuation test')
         passed = False
 
     # Test for f of the wrong type being inputted
@@ -72,7 +102,7 @@ def input_tests():
 
     # Test if the method inputted doesn't exist
     try:
-        num_continuation(cubic, 'fakemethod', good_u0_guess_cubic, good_pars, good_end_par, good_index, good_max_steps,
+        num_continuation(cubic, 'fake_method', good_u0_guess_cubic, good_pars, good_end_par, good_index, good_max_steps,
                          lambda x: x, fsolve)
         print('method which doesn\'t exist test : Test Failed')
         failed_input_tests.append('method which doesn\'t exist test')
@@ -187,7 +217,7 @@ def input_tests():
         print('\n---------------------------------------\n')
     else:
         print('\n---------------------------------------\n')
-        print('Some input tests failed: (see printed below)')
+        print('Some input tests failed: (failed tests printed below)')
         [print(test) for test in failed_input_tests]
         print('\n---------------------------------------\n')
 
@@ -198,6 +228,47 @@ def output_tests():
     """
     failed_output_tests, passed = [], True
 
+    u0_hopfnormal = np.array([1.41, 0, 6.28])
+
+    def normal_hopf(u0, t, pars):
+        """
+        Function which defines the Hopf bifurcation normal form system of ODEs
+        :param u0: Parameter values (u1, u2)
+        :param t: Time value
+        :param pars: Additional parameters which are required to define the system of ODEs (beta, sigma)
+        :return: returns an array of du1/dt and du2/dt at (X, t) as a numpy array
+        """
+        beta, sigma = pars[0], pars[1]
+        u1, u2 = u0[0], u0[1]
+
+        du1dt = beta * u1 - u2 + (sigma * u1) * (u1 ** 2 + u2 ** 2)
+        du2dt = u1 + beta * u2 + (sigma * u2) * (u1 ** 2 + u2 ** 2)
+        return np.array([du1dt, du2dt])
+
+    # phase condition for the normal Hopf bifurcation (u1 gradient = 0)
+    def pc_normal_hopf(u0, pars):
+        return normal_hopf(u0, 0, pars)[0]
+
+    # True solution of the normal hopf bifurcation
+    def true_hopf_normal(t, phase, pars):
+        beta = pars[0]
+
+        u1 = np.sqrt(beta) * np.cos(t + phase)
+        u2 = np.sqrt(beta) * np.sin(t + phase)
+        return np.array([u1, u2])
+
+    # Test the values calculated are correct before the bifurcation at Beta = 0 is reached
+    np_par_list, np_sol_list = num_continuation(normal_hopf, 'natural', u0_hopfnormal, [2, -1], 0.1, 0, 100,
+                                                shooting, fsolve, pc_normal_hopf)
+
+    count = 0
+    print(np_sol_list[count])
+    while count < len(np_par_list):
+        true_hopf_normal(0, np_sol_list, )
+
+
+        count += 1
+
     # Print the results of all the output tests
     if passed:
         print('\n---------------------------------------\n')
@@ -205,7 +276,7 @@ def output_tests():
         print('\n---------------------------------------')
     else:
         print('\n---------------------------------------\n')
-        print('Some output tests failed: (see printed below)')
+        print('Some output tests failed: (failed tests printed below)')
         [print(test) for test in failed_output_tests]
         print('\n---------------------------------------')
 
