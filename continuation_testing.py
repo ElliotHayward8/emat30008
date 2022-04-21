@@ -228,6 +228,62 @@ def output_tests():
     """
     failed_output_tests, passed = [], True
 
+    def cubic(x, pars):
+        """
+        This function defines a cubic equation
+        :param x: Value of x
+        :param pars: Defines the additional parameter c
+        :return: returns the value of the cubic equation at x
+        """
+        c = pars[0]
+        return x ** 3 - x + c
+
+    # Use fsolve to find the true solution of the cubic equation
+    def true_cubic(x, pars):
+        return fsolve(cubic, x, args=pars)
+
+    u0_cubic = np.array([1])
+
+    np_par_list, np_sol_list = num_continuation(cubic, 'natural', u0_cubic, [-2], 0.3, 0, 200, lambda x: x, fsolve)
+
+    pa_par_list, pa_sol_list = num_continuation(cubic, 'pseudo', u0_cubic, [-2], 0.3, 0, 200, lambda x: x, fsolve)
+
+    count = 0
+    np_true_sols = []
+
+    while count < len(np_par_list):
+        true_sol = true_cubic(np_sol_list[count], [np_par_list[count]])
+        np_true_sols.append(float(true_sol))
+        count += 1
+
+    count = 0
+    pa_true_sols = []
+
+    while count < len(pa_sol_list):
+        true_sol = true_cubic(pa_sol_list[count], [pa_par_list[count]])
+        pa_true_sols.append(true_sol)
+        count += 1
+
+    np_sol_list = np.ndarray.tolist(np_sol_list)
+    count = 0
+    while count < len(np_sol_list):
+        np_sol_list[count] = float(np_sol_list[count][0])
+        count += 1
+
+    if np.allclose(np_true_sols, np_sol_list, atol=1e-6):
+        print('natural parameter cubic accuracy test : Test Passed')
+    else:
+        print('natural parameter cubic accuracy test test : Test Failed')
+        failed_output_tests.append('natural parameter cubic accuracy test')
+        passed = False
+
+    if np.allclose(pa_true_sols, pa_sol_list, atol=1e-7):
+        print('pseudo-arclength cubic accuracy test : Test Passed')
+    else:
+        print('pseudo-arclength cubic accuracy test test : Test Failed')
+        failed_output_tests.append('pseudo-arclength cubic accuracy test')
+        passed = False
+
     u0_hopfnormal = np.array([1.41, 0, 6.28])
 
     def normal_hopf(u0, t, pars):
@@ -262,12 +318,19 @@ def output_tests():
                                                 shooting, fsolve, pc_normal_hopf)
 
     count = 0
-    print(np_sol_list[count])
+    true_sols = []
+
     while count < len(np_par_list):
-        true_hopf_normal(0, np_sol_list, )
-
-
+        true_sol = true_hopf_normal(0, np_sol_list[count][-1], [np_par_list[count]])
+        true_sols.append(true_sol)
         count += 1
+
+    if np.allclose(true_sols, np_sol_list[:, :-1], atol=1e-7):
+        print('hopf normal accuracy test : Test Passed')
+    else:
+        print('hopf normal accuracy test : Test Failed')
+        failed_output_tests.append('hopf normal accuracy test')
+        passed = False
 
     # Print the results of all the output tests
     if passed:

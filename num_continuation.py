@@ -201,7 +201,7 @@ def pseudo_arclength(f, u0_guess, pars, max_par, vary_par, max_steps=100, discre
     u2 = np.array(solver(discretisation(f), u1, args=initial_pars))
 
     # Define the list of solutions and alpha values
-    sol_list = [u1[0], u2[0]]
+    sol_list = [u1, u2]
     alpha_list = [par_list[0], par_list[1]]
 
     i = 0
