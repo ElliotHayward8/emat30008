@@ -12,6 +12,7 @@ from math import pi
 import scipy
 from scipy.sparse import diags
 from scipy.sparse.linalg import spsolve
+from num_continuation import num_continuation, nat_par_continuation, pseudo_arclength
 
 
 # Use this function, which utilises the fact it is a sparse matrix, as it reduces the storage requirements
@@ -300,7 +301,7 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type='dirichlet', m
     :param bc_0: Boundary condition at x = 0
     :param bc_L: Boundary condition at x = L
     :param bc_type: The type of boundary conditions (only the fe matrix vector form method can
-                    handle non-zero boundary conditions)
+                    handle non-zero boundary conditions and boundary conditions which aren't dirichlet)
     :param method: Chosen method to use to solve the PDE
     :param source: Defines any source term within the PDE, if there is no source term it is None
     :return: Solution of PDE at time T
@@ -423,6 +424,7 @@ def main():
     plt.plot(x, u_j_be, 'm-', label='Backward Euler')
     plt.plot(x, u_j_fe, 'r-', label='Forward Euler')
     plt.plot(xx, u_exact(xx, T), 'b-', label='exact')
+    plt.title('Comparison of all 3 methods for a simple PDE')
     plt.xlabel('x'), plt.ylabel('u(x,' + str(T) + ')')
     plt.legend(loc='upper right')
     plt.show()
@@ -436,10 +438,139 @@ def main():
         return x + t
 
     # Plot Neumann boundary conditions
-    x_fe_ne, u_j_fe_ne = pde_solver(u_i, mx, mt, 1.0, L, T, bc_is_0, bc_is_1, 'neumann', 'fe matrix vector', source_term)
+    x_fe_ne, u_j_fe_ne = pde_solver(u_i, mx, mt, 1.0, L, T, bc_is_0, bc_is_1, 'neumann', 'fe matrix vector',
+                                    source_term)
     plt.plot(x_fe_ne, u_j_fe_ne, 'b-', label='Forward Euler')
+    plt.title('PDE with Neumann boundary conditions and a source term')
     plt.xlabel('x'), plt.ylabel('u(x,' + str(T) + ')')
     plt.legend(loc='upper right')
+    plt.show()
+
+    """
+    I was unable to solve an equation which contained a source term and had neumann boundary conditions - however, the 
+    answer shown within this graph appears to make sense analytically and thus I believe it proves that the source term
+    and Neumann boundary conditions are coded appropriately
+    """
+
+    """
+    NATURAL PARAMETER CONTINUATION ON PDES
+    """
+
+    """
+    Firstly the PDE function used previously aren't compatible with the continuation function, therefore, the functions
+    must be written in order for them to be usable. They must be changed sp that they only require 2 inputs (like the 
+    cubic equation). These inputs will be u and pars, where pars will be a selection of inputs into the PDE which can 
+    be varied using continuation.
+    
+    In order to do this a function must be created where boundary and initial conditions are defined within the function
+    and any integer/float inputs are inputted within the pars variable so that they can be unpacked within the function 
+    before being inputted into the PDE solver
+    
+    The first case will vary the value of T. This will demonstrate how the PDE varies as it tends towards the steady 
+    state values.
+    """
+
+    def simple_pde(u, pars):
+        """
+        Define a function  which allows a simple PDE with bc at x = 0 and L are equal to 0
+        :param u: Temperature distribution
+        :param pars: List of additional parameters (T, kappa, L, mx, mt)
+        :return: Distribution of PDE values at the inputted parameter values
+        """
+
+        T, kappa, L, mx, mt = pars[0], pars[1], pars[2], pars[3], pars[4]
+
+        # Define the boundary conditions for u(0, t) and u(L, t) == 0
+        def bc_is_0(x, t):
+            return 0
+
+        # Initial temperature distribution to use
+        def u_i(x, p=1):
+            y = (np.sin(pi * x / L)) ** p
+            return y
+
+        # Solve the PDE with the values inputted from pars and the desired boundary and initial conditions
+        x, u_j = pde_solver(u_i, mx, mt, kappa, L, T, bc_is_0, bc_is_0, 'dirichlet', 'crank nicholson')
+
+        return u_j
+
+    # fsolve will not return what we desire as well simply want the solution of the PDE at time T, therefore, we must
+    # define a function which simply returns the function which can be used instead of fsolve
+
+    def return_pde(pde_func, u, args):
+        # Must use args as this is the terminology used within other solvers
+        return pde_func(u, args)
+
+    # Define the variables for the PDE continuation and the initial guess (the values of the initial guess
+    # don't matter)
+
+    T, kappa, L, mx, mt = 0, 2, 5, 20, 100
+    pars = [T, kappa, L, mx, mt]
+
+    u0_guess = np.zeros(mx + 1)
+
+    T_list, u_values = num_continuation(simple_pde, 'natural', u0_guess, pars, 3, 0, 6, lambda x: x, return_pde)
+
+    x_vals = np.linspace(0, L, mx + 1)
+
+    # Plot all returned solutions against the x values, u values must be transposed as they are the incorrect shape
+    plt.plot(x_vals, np.transpose(u_values))
+    plt.xlabel('x'), plt.ylabel('u')
+    plt.legend(('T = 0.0', 'T = 0.6', 'T = 1.2', 'T = 1.8', 'T = 2.4', 'T = 3.0'))
+    plt.title('How the value of a PDE changes with T')
+    plt.show()
+
+    """
+    Repeat the process but now keep the value of T constant and only vary the value of kappa 
+    (the diffusion coefficient). This should affect the steady state. Use the PDE previously solved with Neumann
+    boundary conditions and a source term
+    """
+
+    def neumann_pde(u, pars):
+        """
+        Define a function  which allows a simple PDE with bc at x = 0 and L are equal to 0
+        :param u: Temperature distribution
+        :param pars: List of additional parameters (T, kappa, L, mx, mt)
+        :return: Distribution of PDE values at the inputted parameter values
+        """
+
+        T, kappa, L, mx, mt = pars[0], pars[1], pars[2], pars[3], pars[4]
+
+        # Define the boundary conditions for u(0, t) and u(L, t) == 0
+        def bc_is_0(x, t):
+            return 0
+
+        def bc_is_1(x, t):
+            return 1
+
+        # Initial temperature distribution to use
+        def u_i(x, p=1):
+            y = (np.sin(pi * x / L)) ** p
+            return y
+
+        def source_term(x, t):
+            return x + t
+
+        # Solve the PDE with the values inputted from pars and the desired boundary and initial conditions
+        x, u_j = pde_solver(u_i, mx, mt, kappa, L, T, bc_is_0, bc_is_1, 'neumann', 'fe matrix vector', source_term)
+
+        return u_j
+
+    # Define the variables for the PDE continuation and the initial guess (the values of the initial guess
+    # don't matter)
+    T, kappa, L, mx, mt = 5, 0.5, 4, 24, 5000
+    pars = [T, kappa, L, mx, mt]
+
+    u0_guess = np.zeros(mx + 1)
+
+    kappa_list, u_values = num_continuation(neumann_pde, 'natural', u0_guess, pars, 3, 1, 6, lambda x: x, return_pde)
+
+    x_vals = np.linspace(0, L, mx + 1)
+
+    plt.plot(x_vals, np.transpose(u_values)[0])
+    plt.xlabel('x'), plt.ylabel('u(x,' + str(T) + ')')
+    plt.legend(('kappa = 0.5', 'kappa = 1.0', 'kappa = 1.5', 'kappa = 2.0', 'kappa = 2.5', 'kappa = 3.0'))
+    plt.title('How the value of a PDE changes with kappa')
     plt.show()
 
 
