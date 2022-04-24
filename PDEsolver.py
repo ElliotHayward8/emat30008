@@ -12,7 +12,7 @@ from math import pi
 import scipy
 from scipy.sparse import diags
 from scipy.sparse.linalg import spsolve
-from num_continuation import num_continuation, nat_par_continuation, pseudo_arclength
+from num_continuation import num_continuation
 
 
 # Use this function, which utilises the fact it is a sparse matrix, as it reduces the storage requirements
@@ -329,7 +329,7 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type='dirichlet', m
     # Check that L is a positive float or integer
     if not isinstance(L, (int, np.int_, float, np.float_)):
         raise TypeError(f'L: {L} must be an integer or float')
-    else:
+    elif L < 0:
         raise ValueError(f'L: {L} must be a positive integer or float')
 
     # Check that mx and mt are positive integers

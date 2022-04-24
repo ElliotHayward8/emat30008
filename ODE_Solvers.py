@@ -248,6 +248,7 @@ def func2_comparison_graph(deltat_max, time_periods, x0, total_time, *pars):
 
 
 def main():
+
     """
     Plot the error graph for both the euler and RK4 method as the value of h, the step-size, changes
     """

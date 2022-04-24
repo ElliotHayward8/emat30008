@@ -15,6 +15,7 @@ def pred_prey_eq(X, t, pars):
     :param pars: Additional parameters which define the equation (a, b, d)
     :return: Array of derivatives dx/dt and dy/dt (dxdt, dydt)
     """
+
     x = X[0]
     y = X[1]
     a, b, d = pars[0], pars[1], pars[2]
@@ -88,7 +89,7 @@ def shooting(f):
             t_eval = np.linspace(0, T, 1000)
             sol = solve_ode(f, u0, t_eval, 0.01, 'rk4', True, *pars)
 
-            # Extract the final solution
+            # Extract the final solution value
             final_sol = sol[:, -1]
 
             # return the final solution value
@@ -98,7 +99,7 @@ def shooting(f):
         T, u0 = u0T[-1], u0T[:-1]
 
         """
-        return an array of the initial guess minus the solution alongside the phase condition this is then to be 
+        return an array of the initial guess minus the solution, alongside the phase condition. This is then to be 
         minimised using a solver to find where these values are 0 in order to isolate a periodic orbit
         """
 

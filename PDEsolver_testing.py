@@ -148,11 +148,11 @@ def output_tests():
         failed_output_tests.append('Forward Euler and FE matrix vector same output test')
         print('Forward Euler and FE matrix vector same output test : Test Failed')
 
-    print('The following test takes a while to run as it has high mc and mt values to increase accuracy')
+    print('\n(the following test takes a while to run as it has high mx and mt values to increase accuracy)\n')
 
     # Test to see if the function works for Neumann boundary conditions
     L, kappa, T = 1, 0.25, 5
-    mx, mt = 400, 400001
+    mx, mt = 200, 200000
 
     def u_i_neu(x):
         # Initial temperature distribution
@@ -167,7 +167,8 @@ def output_tests():
 
     true_u_neu = u_neu_exact(x_fe_pe, 5)
 
-    if np.allclose(true_u_neu, u_j_fe_pe):
+    # Use a less accurate tolerance so that lower values of mx and mt can be used which decreases the run time
+    if np.allclose(true_u_neu, u_j_fe_pe, atol=1e-03):
         print('Forward Euler Neumann BC test : Test Passed')
     else:
         passed = False
