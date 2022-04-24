@@ -4,7 +4,7 @@ from numerical_shooting import shooting
 from scipy.optimize import fsolve
 from scipy.linalg import norm
 from value_checks import array_int_or_float
-from num_continuation import num_continuation, nat_par_continuation, pseudo_arclength
+from num_continuation import num_continuation
 
 def input_tests():
     """
