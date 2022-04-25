@@ -428,7 +428,7 @@ def main():
     pa_par_list, pa_sol_list = num_continuation(normal_hopf, 'pseudo', u0_guess_hopfnormal, [2, -1], -0.4, 0, 100,
                                                 shooting, fsolve, pc_normal_hopf)
 
-    # As the solutions have multiple values the norm must be calculated (excluding the T value)
+    # As the solutions from both methods have multiple values the norm must be calculated (excluding the T value)
 
     norm_np_sol_list = scipy.linalg.norm(np_sol_list[:, :-1], axis=1, keepdims=True)
 

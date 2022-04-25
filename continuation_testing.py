@@ -226,6 +226,7 @@ def output_tests():
     """
     Tests for the outputs of find_shooting_orbit
     """
+
     failed_output_tests, passed = [], True
 
     def cubic(x, pars):
@@ -244,13 +245,16 @@ def output_tests():
 
     u0_cubic = np.array([1])
 
+    # Perform natural parameter continuation on the cubic equation until c = 0.3
     np_par_list, np_sol_list = num_continuation(cubic, 'natural', u0_cubic, [-2], 0.3, 0, 200, lambda x: x, fsolve)
 
+    # Perform pseudo-arclength continuation on the cubic equation until c = 0.3
     pa_par_list, pa_sol_list = num_continuation(cubic, 'pseudo', u0_cubic, [-2], 0.3, 0, 200, lambda x: x, fsolve)
 
     count = 0
     np_true_sols = []
 
+    # Calculate the true solutions for the natural parameter solution values
     while count < len(np_par_list):
         true_sol = true_cubic(np_sol_list[count], [np_par_list[count]])
         np_true_sols.append(float(true_sol))
@@ -259,17 +263,20 @@ def output_tests():
     count = 0
     pa_true_sols = []
 
+    # Calculate the true solutions for the pseudo-arclength solution values
     while count < len(pa_sol_list):
         true_sol = true_cubic(pa_sol_list[count], [pa_par_list[count]])
         pa_true_sols.append(true_sol)
         count += 1
 
+    # Convert the solution values from an array to a list of floats
     np_sol_list = np.ndarray.tolist(np_sol_list)
     count = 0
     while count < len(np_sol_list):
         np_sol_list[count] = float(np_sol_list[count][0])
         count += 1
 
+    # Test natural parameter solution for the cubic equation
     if np.allclose(np_true_sols, np_sol_list, atol=1e-6):
         print('natural parameter cubic accuracy test : Test Passed')
     else:
@@ -277,6 +284,7 @@ def output_tests():
         failed_output_tests.append('natural parameter cubic accuracy test')
         passed = False
 
+    # Test the pseudo-arclength solution for the cubic equation
     if np.allclose(pa_true_sols, pa_sol_list, atol=1e-7):
         print('pseudo-arclength cubic accuracy test : Test Passed')
     else:
@@ -301,7 +309,7 @@ def output_tests():
         du2dt = u1 + beta * u2 + (sigma * u2) * (u1 ** 2 + u2 ** 2)
         return np.array([du1dt, du2dt])
 
-    # phase condition for the normal Hopf bifurcation (u1 gradient = 0)
+    # Phase condition for the normal Hopf bifurcation (u1 gradient = 0)
     def pc_normal_hopf(u0, pars):
         return normal_hopf(u0, 0, pars)[0]
 
@@ -313,7 +321,7 @@ def output_tests():
         u2 = np.sqrt(beta) * np.sin(t + phase)
         return np.array([u1, u2])
 
-    # Test the values calculated are correct before the bifurcation at Beta = 0 is reached
+    # Perform natural parameter continuation on the normal hopf until the bifurcation at Beta = 0
     np_par_list, np_sol_list = num_continuation(normal_hopf, 'natural', u0_hopfnormal, [2, -1], 0.1, 0, 100,
                                                 shooting, fsolve, pc_normal_hopf)
 
@@ -325,11 +333,35 @@ def output_tests():
         true_sols.append(true_sol)
         count += 1
 
+    # Perform pseudo-arclength continuation on the normal hopf until the bifurcation at Beta = 0
+    pa_par_list, pa_sol_list = num_continuation(normal_hopf, 'pseudo', u0_hopfnormal, [2, -1], 0.1, 0, 100, shooting,
+                                                fsolve, pc_normal_hopf)
+
+    count = 0
+    pa_true_sols = []
+    while count < len(pa_sol_list):
+        true_sol = true_hopf_normal(0, pa_sol_list[count][-1], [pa_par_list[count]])
+        pa_true_sols.append(true_sol)
+        count += 1
+
+    # Test the accuracy of the natural parameter solution
     if np.allclose(true_sols, np_sol_list[:, :-1], atol=1e-7):
-        print('hopf normal accuracy test : Test Passed')
+        print('natural parameter hopf normal accuracy test : Test Passed')
     else:
-        print('hopf normal accuracy test : Test Failed')
-        failed_output_tests.append('hopf normal accuracy test')
+        print('natural parameter hopf normal accuracy test : Test Failed')
+        failed_output_tests.append('natural parameter hopf normal accuracy test')
+        passed = False
+
+    # Remove the time value from each solution
+    for i in range(len(pa_sol_list[:])):
+        pa_sol_list[i] = np.delete(pa_sol_list[i], 2)
+
+    # Test the accuracy of the pseudo-arclength solution
+    if np.allclose(pa_true_sols[:], pa_sol_list, atol=1e-6):
+        print('pseudo-arclength hopf normal test : Test Passed')
+    else:
+        print('pseudo-arclength hopf normal test : Test Failed')
+        failed_output_tests.append('pseudo-arclength hopf normal test')
         passed = False
 
     # Print the results of all the output tests
@@ -345,6 +377,7 @@ def output_tests():
 
 
 def main():
+
     input_tests()
 
     output_tests()
