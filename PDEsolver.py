@@ -332,6 +332,12 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type='dirichlet', m
     elif L < 0:
         raise ValueError(f'L: {L} must be a positive integer or float')
 
+    # Check that T is a positive float or integer
+    if not isinstance(T, (int, np.int_, float, np.float_)):
+        raise TypeError(f'T: {T} must be an integer or float')
+    elif T < 0:
+        raise ValueError(f'T: {T} must be a positive integer or float')
+
     # Check that mx and mt are positive integers
     if not isinstance(mx, (int, np.int_)):
         raise TypeError(f'mx: {mx} is not an integer')
@@ -355,6 +361,11 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type='dirichlet', m
                 raise TypeError(f'source: {source(0, 0)} must be a float or integer')
         else:
             raise TypeError(f'source: {source} is not a callable function')
+
+    all_bc_type = ['dirichlet', 'periodic', 'neumann']
+
+    if bc_type not in all_bc_type:
+        raise NameError(f'bc_type: {bc_type} is not an acceptable boundary condition type')
 
     # Check that u_i_func is a callable function
     if callable(u_i_func):
@@ -500,8 +511,7 @@ def main():
         return u_j
 
     # fsolve will not return what we desire as well simply want the solution of the PDE at time T, therefore, we must
-    # define a function which simply returns the function which can be used instead of fsolve
-
+    # define a function which simply returns the function which can be used instead of fsolve (or a different solver)
     def return_pde(pde_func, u, args):
         # Must use args as this is the terminology used within other solvers
         return pde_func(u, args)
