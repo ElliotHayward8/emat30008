@@ -1,6 +1,42 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+def int_or_float(par, par_name):
+    """
+    A function which determines if a parameter is an integer/float
+    :param par: Parameter to check
+    :param par_name: Name of the parameter to check
+    """
+
+    if not isinstance(par, (int, float, np.float_, np.int_)):
+        raise TypeError(f'{par_name}: {par} must be an integer or float')
+
+def pos_int(par, par_name):
+    """
+    A function which determines if a parameter is a positive integer
+    :param par: Parameter to check
+    :param par_name: Name of the parameter to check
+    """
+
+    if not isinstance(par, (int, np.int_)):
+        raise TypeError(f'{par_name}: {par} must be an integer')
+
+    if par <= 0:
+        raise ValueError(f'{par_name}: {par} must be a positive integer')
+
+def pos_int_or_float(par, par_name):
+    """
+    A function which determines if a parameter is a positive integer/float
+    :param par: Parameter to check
+    :param par_name: Name of the parameter to check
+    """
+
+    if not isinstance(par, (int, float, np.float_, np.int_)):
+        raise TypeError(f'{par_name}: {par} must be an integer or float')
+
+    if par <= 0:
+        raise ValueError(f'{par_name}: {par} must be a positive integer or float')
+
 
 def array_int_or_float(par, par_name):
     """

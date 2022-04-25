@@ -4,7 +4,7 @@ from scipy.optimize import fsolve
 from scipy.integrate import odeint
 from collections import Counter
 from ODE_Solvers import euler_step, rk4_step, solve_ode, solve_to
-from value_checks import ode_checker, array_int_or_float
+from value_checks import ode_checker, array_int_or_float, int_or_float
 
 
 def pred_prey_eq(X, t, pars):
@@ -128,8 +128,7 @@ def find_shooting_orbit(f, u0T, phase_cond, *pars):
         pc_val = phase_cond(u0T[:-1], *pars)
 
         # Check the phase condition returns an int or float
-        if not isinstance(pc_val, (int, float, np.int_, np.float_)):
-            raise TypeError(f'Output of f is of the type {type(pc_val)}. It should be an int or a float')
+        int_or_float(pc_val, 'pc_val')
 
     else:
         raise TypeError(f'phase_cond: \'{phase_cond}\' must be a callable function.')

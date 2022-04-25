@@ -13,6 +13,7 @@ import scipy
 from scipy.sparse import diags
 from scipy.sparse.linalg import spsolve
 from num_continuation import num_continuation
+from value_checks import int_or_float, pos_int_or_float, pos_int
 
 
 # Use this function, which utilises the fact it is a sparse matrix, as it reduces the storage requirements
@@ -313,52 +314,30 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type='dirichlet', m
     # Check that the boundary conditions given are functions
     if callable(bc_0):
         # Check that the boundary condition functions return a float or integer
-        if not isinstance(bc_0(0, 0), (int, np.int_, float, np.float_)):
-            raise TypeError(f'bc_0(0): {bc_0(0, 0)} is not an integer or float')
-
+        int_or_float(bc_0(0, 0), 'bc_0(0, 0')
     else:
         raise TypeError(f'bc_0: {bc_0} must be a callable function')
 
     if callable(bc_L):
-        if not isinstance(bc_L(L, 0), (int, np.int_, float, np.float_)):
-            raise TypeError(f'bc_L(0): {bc_L(L, 0)} is not an integer or float')
-
+        int_or_float(bc_0(0, 0), 'bc_0(0, 0)')
     else:
         raise TypeError(f'bc_L: {bc_L} must be a callable function')
 
     # Check that L is a positive float or integer
-    if not isinstance(L, (int, np.int_, float, np.float_)):
-        raise TypeError(f'L: {L} must be an integer or float')
-    elif L < 0:
-        raise ValueError(f'L: {L} must be a positive integer or float')
+    pos_int_or_float(L, 'L')
 
-    # Check that T is a positive float or integer
-    if not isinstance(T, (int, np.int_, float, np.float_)):
-        raise TypeError(f'T: {T} must be an integer or float')
-    elif T < 0:
-        raise ValueError(f'T: {T} must be a positive integer or float')
+    # Check that T and kappa are positive floats/integers
+    pos_int_or_float(T, 'T')
+    pos_int_or_float(kappa, 'kappa')
 
     # Check that mx and mt are positive integers
-    if not isinstance(mx, (int, np.int_)):
-        raise TypeError(f'mx: {mx} is not an integer')
-    else:
-        if mx <= 0:
-            raise ValueError(f'mx: {mx} must be a positive integer')
-    if not isinstance(mt, (int, np.int_)):
-        raise TypeError(f'mt: {mt} is not an integer')
-    else:
-        if mt <= 0:
-            raise ValueError(f'mt: {mt} must be a positive integer')
-
-    # Check that kappa is a float or integer
-    if not isinstance(kappa, (int, np.int_, float, np.float_)):
-        raise TypeError(f'kappa: {kappa} is not an integer or float')
+    pos_int(mx, 'mx')
+    pos_int(mt, 'mt')
 
     # Check that source is a callable function that is an integer or float when called with an x and t value
     if source is not None:
         if callable(source):
-            if not isinstance(source(0, 0), (int, np.int_, float, np.float_)):
-                raise TypeError(f'source: {source(0, 0)} must be a float or integer')
+            int_or_float(source(0, 0), 'source(0, 0)')
         else:
             raise TypeError(f'source: {source} is not a callable function')
 
@@ -371,8 +350,7 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type='dirichlet', m
     if callable(u_i_func):
         # Check the output of u_i_func is an integer or float
         u_i_L = u_i_func(L)
-        if not isinstance(u_i_L, (int, np.int_, float, np.float_)):
-            raise TypeError(f'u_i_L: {u_i_L} must be a float or integer')
+        int_or_float(u_i_L, 'u_i_L')
         if method == 'forward_euler':
             if bc_type != 'dirichlet':
                 raise TypeError('forward_euler method only works for dirichlet boundary conditions')

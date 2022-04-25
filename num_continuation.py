@@ -4,7 +4,7 @@ import numpy as np
 from numerical_shooting import shooting
 from scipy.optimize import fsolve, root
 import scipy
-from value_checks import array_int_or_float
+from value_checks import array_int_or_float, int_or_float, pos_int_or_float
 
 
 def cubic(x, pars):
@@ -57,6 +57,18 @@ def modified_hopf(u0, t, pars):
 # Phase condition for the modified Hopf bifurcation (u1 gradient = 0)
 def pc_mod_hopf(u0, pars):
     return modified_hopf(u0, 0, pars)[0]
+
+def return_new_pars(pars, vary_par, new_alpha):
+    """
+    A function which takes in a new alpha value and replaces the old alpha value within the pars list
+    :param pars: List of additional parameters
+    :param vary_par: The index position of the parameter which is varying
+    :param new_alpha: New alpha value to be subbed into the pars list
+    :return: pars with the new alpha value substituted in
+    """
+
+    pars[vary_par] = new_alpha
+    return pars
 
 
 def nat_par_continuation(f, u0_guess, pars, max_par, vary_par, max_steps=100, discretisation=shooting,
@@ -179,8 +191,8 @@ def pseudo_arclength_no_pc(f, u0_guess, pars, max_par, vary_par, max_steps=100, 
         # Define the varying variable as the predicted alpha value
         pars[vary_par] = pred_a
 
-        full_sol = np.array(solver(lambda nui: np.append(discretisation(f)(nui[:-1], list(map((
-            lambda pars: nui[-1]), pars))),
+        full_sol = np.array(solver(lambda nui: np.append(discretisation(f)(nui[:-1], pars=return_new_pars(pars, vary_par
+                                                                                                          , nui[-1])),
                                                          np.dot(nui - pred_val, secant)), pred_val))
 
         # Split the full_sol into the alpha and U values
@@ -231,13 +243,13 @@ def pseudo_arclength_pc(f, u0_guess, pars, max_par, vary_par, phase_cond, max_st
     # function is different depending on whether max_par is greater than or less than min_par
     if min_par < max_par:
         def final_alpha(alpha, max_par):
-            if alpha >= max_par:
+            if alpha >= max_par or alpha < min_par:
                 return False
             else:
                 return True
     else:
         def final_alpha(alpha, max_par):
-            if alpha <= max_par:
+            if alpha <= max_par or alpha > min_par:
                 return False
             else:
                 return True
@@ -273,7 +285,7 @@ def pseudo_arclength_pc(f, u0_guess, pars, max_par, vary_par, phase_cond, max_st
         # Calculate the change in x and alpha (a)
         delta_x = x_1 - x_0
         delta_a = a_1 - a_0
-        print(a_0, x_0)
+
         # Calculate the predicted values of x and alpha (a)
         pred_x = x_1 + delta_x
         pred_a = a_1 + delta_a
@@ -283,8 +295,8 @@ def pseudo_arclength_pc(f, u0_guess, pars, max_par, vary_par, phase_cond, max_st
 
         # Define the varying variable as the predicted alpha value
         pars[vary_par] = pred_a
-        full_sol = np.array(solver(lambda nui: np.append(discretisation(f)(nui[:-1], phase_cond, list(map((
-            lambda pars: nui[-1]), pars))),
+        full_sol = np.array(solver(lambda nui: np.append(discretisation(f)(nui[:-1], phase_cond, return_new_pars(
+            pars, vary_par, nui[-1])),
                                                          np.dot(nui - pred_val, secant)), pred_val))
 
         # Split the full_sol into the alpha and U values
@@ -337,8 +349,7 @@ def num_continuation(f, method, u0_guess, pars, max_par, vary_par, max_steps=100
         array_int_or_float(trial_func_val, 'trial_func_val')
 
     # Check that max_par is an integer or float
-    if not isinstance(max_par, (int, float, np.float_, np.int_)):
-        raise TypeError(f'max_par: {max_par} must be an integer or a float')
+    int_or_float(max_par, 'max_par')
 
     # Check that max_steps is a positive integer
     if not isinstance(max_steps, (int, np.int_)):
@@ -368,8 +379,6 @@ def num_continuation(f, method, u0_guess, pars, max_par, vary_par, max_steps=100
             par_list, sol_list = pseudo_arclength_no_pc(f, u0_guess, pars, max_par, vary_par, max_steps, discretisation,
                                                         solver)
         elif callable(phase_cond):
-            # print('Pseudo-arclength is currently unavailable for shooting problems')
-            # return
             par_list, sol_list = pseudo_arclength_pc(f, u0_guess, pars, max_par, vary_par, phase_cond, max_steps,
                                                      discretisation, solver)
         else:
@@ -456,9 +465,14 @@ def main():
     # As the solutions from both methods have multiple values the norm must be calculated (excluding the T value)
     norm_np_sol_list = scipy.linalg.norm(np_sol_list[:, :-1], axis=1, keepdims=True)
 
+    count = 0
+    while count < len(pa_sol_list):
+        pa_sol_list[count] = np.array(scipy.linalg.norm(pa_sol_list[count][:-1], axis=0, keepdims=True))
+        count += 1
+
     # Plot a graph of Beta against the norm of the solution
     plt.plot(np_par_list, norm_np_sol_list, 'b-', label='Natural parameter')
-    # plt.plot(pa_par_list, pa_sol_list, 'r-', label='Pseudo-arclength')
+    plt.plot(pa_par_list, pa_sol_list, 'r-', label='Pseudo-arclength')
     plt.title('Modified Hopf bifurcation normal form')
     plt.xlabel('Beta'), plt.ylabel('||x||'), plt.legend()
     plt.show()
