@@ -326,9 +326,13 @@ def pde_solver(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L, bc_type='dirichlet', m
     # Check that L is a positive float or integer
     pos_int_or_float(L, 'L')
 
-    # Check that T and kappa are positive floats/integers
-    pos_int_or_float(T, 'T')
+    # Check that T and kappa are positive floats/integers (T can be 0)
     pos_int_or_float(kappa, 'kappa')
+
+    if not isinstance(T, (int, float, np.int_, np.float_)):
+        raise TypeError(f'T: {T} must be an integer or float')
+    elif T < 0:
+        raise ValueError(f'T: {T} must be a float or integer which is greater than or equal to 0')
 
     # Check that mx and mt are positive integers
     pos_int(mx, 'mx')
