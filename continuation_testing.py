@@ -10,6 +10,7 @@ def input_tests():
     """
     Test the response of the num_continuation function to correct and incorrect inputs
     """
+
     failed_input_tests, passed = [], True
 
     def cubic(x, pars):
@@ -224,7 +225,7 @@ def input_tests():
 
 def output_tests():
     """
-    Tests for the outputs of find_shooting_orbit
+    Tests for the outputs of the num_continuation function
     """
 
     failed_output_tests, passed = [], True

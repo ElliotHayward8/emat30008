@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-from value_checks import array_int_or_float, ode_checker
+from value_checks import array_int_or_float, ode_checker, pos_int_or_float
 
 
 def func1(x, t):
@@ -82,6 +82,10 @@ def solve_to(f, x0, t0, t1, deltat_max, solver='rk4', *pars):
     :return: X value at time t1
     """
 
+    # Check that the method is a string
+    if not isinstance(solver, str):
+        raise TypeError(f'solver ({solver}) must be a string')
+
     h = deltat_max
     t, x = t0, x0
 
@@ -113,7 +117,7 @@ def solve_ode(f, x0, t_eval, deltat_max, solver, ODEs, *pars):
     # Check the types of x0, t_eval and deltat_max (should be arrays of floats/integers)
     array_int_or_float(x0, 'x0 (initial condition)')
     array_int_or_float(t_eval, 't_eval')
-    array_int_or_float(deltat_max, 'deltat_max')
+    pos_int_or_float(deltat_max, 'deltat_max')
 
     # Check the inputted ODE is formatted correctly
     ode_checker(f, x0, t_eval, *pars)
