@@ -441,6 +441,7 @@ def main():
     plt.plot(np_par_list, norm_np_sol_list, 'b-', label='Natural parameter')
     plt.plot(pa_par_list, pa_sol_list, 'r-', label='Pseudo-arclength')
     plt.xlabel('Beta'), plt.ylabel('||x||'), plt.legend()
+    plt.title('Hopf bifurcation normal form continuation varying Beta between 2 and -0.4')
     plt.show()
 
     # I had to go from 2 to just past 0 (rather than 0 to 2) because the bifurcation occurs at Beta = 0, therefore, the
@@ -473,7 +474,7 @@ def main():
     # Plot a graph of Beta against the norm of the solution
     plt.plot(np_par_list, norm_np_sol_list, 'b-', label='Natural parameter')
     plt.plot(pa_par_list, pa_sol_list, 'r-', label='Pseudo-arclength')
-    plt.title('Modified Hopf bifurcation normal form')
+    plt.title('Modified Hopf bifurcation normal form continuation varying Beta between 2 and -1')
     plt.xlabel('Beta'), plt.ylabel('||x||'), plt.legend()
     plt.show()
 
