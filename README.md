@@ -1,5 +1,5 @@
 #emat30008
-
+Author - Elliot Hayward
 emat30008 is a set of python function which utilise numerical methods to solve ODEs.
 
 
