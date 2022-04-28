@@ -169,6 +169,7 @@ def output_tests():
     """
     Tests for the outputs of find_shooting_orbit
     """
+
     failed_output_tests, passed = [], True
 
     # Normal hopf bifurcation function

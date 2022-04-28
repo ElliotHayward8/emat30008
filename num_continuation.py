@@ -478,6 +478,8 @@ def main():
     plt.xlabel('Beta'), plt.ylabel('||x||'), plt.legend()
     plt.show()
 
+    # Observations of the graph show that there is a bifurcation at approximately Beta = -0.2
+
 
 if __name__ == '__main__':
     main()
