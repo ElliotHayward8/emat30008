@@ -219,8 +219,6 @@ def output_tests():
         failed_output_tests.append('Euler method on d2xdt2 = -x accuracy test')
         passed = False
 
-
-
     # Print the results of all the output tests
     if passed:
         print('\n---------------------------------------\n')
