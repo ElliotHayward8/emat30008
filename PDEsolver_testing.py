@@ -7,6 +7,7 @@ def input_tests():
     """
     Tests the inputs of the PDE Solver function
     """
+
     failed_input_tests, passed = [], True
 
     right_kappa, L, right_T, right_mt, right_mx = 1.0, 1.0, 0.5, 3000, 10
@@ -206,6 +207,7 @@ def output_tests():
     """
     Tests for the outputs of the PDE Solver function
     """
+
     failed_output_tests, passed = [], True
 
     # Set problem parameters/functions

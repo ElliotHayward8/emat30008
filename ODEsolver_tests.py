@@ -148,7 +148,7 @@ def input_tests():
     # Print the results of all the input tests
     if passed:
         print('\n---------------------------------------\n')
-        print('ALL CONTINUATION INPUT TESTS PASSED')
+        print('ALL ODE SOLVER INPUT TESTS PASSED')
         print('\n---------------------------------------\n')
     else:
         print('\n---------------------------------------\n')
@@ -222,7 +222,7 @@ def output_tests():
     # Print the results of all the output tests
     if passed:
         print('\n---------------------------------------\n')
-        print('ALL CONTINUATION OUTPUT TESTS PASSED')
+        print('ALL ODE SOLVER OUTPUT TESTS PASSED')
         print('\n---------------------------------------')
     else:
         print('\n---------------------------------------\n')
@@ -235,6 +235,7 @@ def main():
     input_tests()
 
     output_tests()
+
 
 if __name__ == '__main__':
     main()
