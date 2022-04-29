@@ -27,6 +27,7 @@ def create_tri_diag_mat(main_diag_len, low_diag, main_diag, high_diag):
     :param high_diag: Value for the upper diagonal
     :return: Tridiagonal matrix with designated values
     """
+
     low_diags = [low_diag] * (main_diag_len - 1)
     high_diags = [high_diag] * (main_diag_len - 1)
     main_diags = [main_diag] * main_diag_len
@@ -146,6 +147,7 @@ def c_n(u_i_func, mx, mt, kappa, L, T, bc_0, bc_L):
     :param bc_L: Boundary condition at x = L
     :return: Solution of PDE at time T
     """
+
     # Set up the numerical environment variables
     x, t = np.linspace(0, L, mx + 1), np.linspace(0, T, mt + 1)  # Mesh points in space and time
     deltax, deltat = x[1] - x[0], t[1] - t[0]  # Grid spacing in x and t

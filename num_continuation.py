@@ -47,6 +47,7 @@ def modified_hopf(u0, t, pars):
     :param pars: Additional variables which are required to define the system of ODEs
     :return: returns an array of du1/dt and du2/dt at (X, t) as a numpy array
     """
+
     beta = pars[0]
     u1, u2 = u0[0], u0[1]
 

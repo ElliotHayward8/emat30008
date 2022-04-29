@@ -104,6 +104,7 @@ def shooting(f):
         """
 
         return np.append(u0 - F(u0, T), phase_con(u0, *pars))
+    # Return a function call of G - when used
     return G
 
 
@@ -127,17 +128,17 @@ def find_shooting_orbit(f, u0T, phase_cond, *pars):
     if callable(phase_cond):
         pc_val = phase_cond(u0T[:-1], *pars)
 
-        # Check the phase condition returns an int or float
+        # Check the phase condition returns an int or float value
         int_or_float(pc_val, 'pc_val')
 
     else:
-        raise TypeError(f'phase_cond: \'{phase_cond}\' must be a callable function.')
+        raise TypeError(f'phase_cond: {phase_cond} must be a callable function.')
 
-    G = shooting(f)
-    fsolve_sol = fsolve(G, u0T, (phase_cond, *pars), full_output=True)
+    fsolve_sol = fsolve(shooting(f), u0T, (phase_cond, *pars), full_output=True)
     shooting_orbit = fsolve_sol[0]
     converge = fsolve_sol[2]
 
+    # Check if fsolve was able to converge
     if converge == 1:
         return shooting_orbit
     else:
@@ -152,6 +153,7 @@ def plot_isolated_orbit(f, shooting_orbit, ODEs, *pars):
     :param ODEs: A boolean variable which defines whether it is a singular or system of ODE(s) (0 = singular)
     :param pars: Array of any additional parameters
     """
+
     u0, T, deltatmax = shooting_orbit[:-1], shooting_orbit[-1], 0.01
     t_eval = np.linspace(0, T, int(T * 2))
 
